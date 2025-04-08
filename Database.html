@@ -1,0 +1,1348 @@
+<body onload="checkLogin()" style="background-image: url('https://pointos.com/wp-content/uploads/2017/10/cropped-blur-background-of-pub-restaurant-with-wood-table-628137314_2125x1416.jpeg'); background-size: cover; background-position: center center; background-repeat: no-repeat;">
+
+    <!-- Login Page -->
+    <div id="loginPage" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 1000px;">
+        
+        <!-- Logo -->
+        <img src="https://images.vexels.com/media/users/3/131779/isolated/preview/3d4929d289ad98ad71637d5c257d2f08-pizza-logo-1-by-vexels.png" alt="Xavi's Pizza Logo" style="width: 150px; margin-bottom: 20px;">
+
+        <h2 style="font-size: 40px; margin-bottom: 20px; color: white;">Xavi's Pizza - Login</h2>
+        <input id="username" type="text" placeholder="Username" style="padding: 10px; margin: 10px; font-size: 25px;">
+        <input id="password" type="password" placeholder="Password" style="padding: 10px; margin: 10px; font-size: 25px;">
+        <button onclick="login()" style="padding: 15px 45px; font-size: 25px; background-color: #004d99; color: white; border: none; border-radius: 7px; cursor: pointer;">Login</button>
+        <p id="loginError" style="color: red; margin-top: 10px;"></p>
+    </div>
+</body>
+
+
+    <!-- Main POS Page -->
+    <div id="mainPage" style="display: none;">
+        <div style="display: flex; justify-content: flex-end; padding: 20px;">
+
+ 
+          
+<div class="pos-wrapper">
+  <div class="logout-container">
+<button onclick="logout()" style="padding: 10px 20px; font-size: 16px; background-color: #cc0000; color: white; border: none; border-radius: 5px; cursor: pointer;">LOGOUT</button>
+<div class="timestamp-container">
+
+  <div id="timestamp" class="timestamp"></div>
+
+<!-- 🧾 VIEW HISTORY BUTTON -->
+<button onclick="showTransactionHistory()">🧾 VIEW TRANSACTION HISTORY</button>
+
+
+
+<!-- 🧾 EXPORT TO CSV SCRIPT -->
+<script>
+    function exportTransactionHistoryToCSV() {
+        const history = JSON.parse(localStorage.getItem('transactionHistory')) || [];
+
+        if (history.length === 0) {
+            alert("No transactions to export.");
+            return;
+        }
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Timestamp,Reference,Item,Quantity,Price,Subtotal,Tax,Total Due,Amount Paid,Change\n";
+
+        history.forEach(txn => {
+            txn.items.forEach(item => {
+                const row = [
+                    `"${txn.timestamp}"`,
+                    `"${txn.reference}"`,
+                    `"${item.name}"`,
+                    item.quantity,
+                    item.price,
+                    txn.subtotal,
+                    txn.tax,
+                    txn.totalDue,
+                    txn.amountPaid,
+                    txn.change
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+
+        const now = new Date();
+        const filename = `transactions_${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}_${now.getHours()}${now.getMinutes()}.csv`;
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+<!-- 📁 EXPORT TO CSV BUTTON -->
+<!-- 👉 Paste this inside your transaction modal, under the Clear button -->
+<!-- Example placement: inside <div id="transaction-modal-content"> -->
+<button onclick="exportTransactionHistoryToCSV()">📁 Export to CSV</button>
+
+
+</div>
+        
+</div>
+
+  
+  <!-- rest of your POS content here -->
+</div>
+
+
+        <!-- Your entire POS container -->
+        <div class="container">
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xavi's Pizza POS</title> 
+
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+
+            box-sizing: border-box;
+        }
+
+
+
+/* Style for the Title (Product Container Title) */
+.product-container h2 {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 800px;  /* Increase the font size */
+    font-weight: 1000;  /* Make it bold */
+    color: #f7f9fc;  /* Set a custom color (e.g., purple) */
+    text-align: center;  /* Center the title */
+    margin-bottom: 100px;  /* Add some space below the title */
+    letter-spacing: 2px;  /* Slightly increase the letter spacing for a modern look */
+    text-transform: uppercase;  /* Optionally, make the text uppercase */
+}
+
+        body {
+            font-family: 'Segoe UI', 'Segoe UI SemiBold', sans-serif;
+            background-color: #f7f9fc;
+            color: #333;
+            display: flex;
+            font-size: 20px;
+            justify-content: center;
+            align-items: flex-start;
+            height: 50vh;
+            padding: 100px;
+
+
+        /* Position the logo at the upper left of the screen */
+        #logo {
+            position: fixed;  /* Make it fixed so it stays in place even when scrolling */
+            top: 20px;  /* Distance from the top of the screen */
+            left: 120px; /* Distance from the left of the screen */
+            width: 150px;  /* Width of the logo */
+
+        }
+
+        .container {
+            width: 45%;
+            max-width: 2500px;
+            display: grid;
+            grid-template-columns:10fr 1fr;
+            gap: 0.1px
+
+        }
+
+        /* Left Panel: Order List */
+        .order-container {
+            background-color: rgba(255, 255, 255, 0.45); /* White with 50% opacity */
+            padding: 50px;
+            border-radius: 1px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            display: block;
+            flex-direction: column;
+            gap: 0.1px;
+            width: 800px; /* Adjust this to control the width */
+ 
+
+        }
+
+        .order-container h3 {
+            text-align: center;
+            font-size: 5px;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.45); /* White with 50% opacity */
+            margin-bottom: 20px;
+            width: 1000px;         }
+
+
+
+        .order-list {
+            flex-grow: block;
+            width: 700px; /* Adjust this to control the width */
+            height: 500px; /* fixed height, or use max-height with constraints */
+            overflow-y: auto; /* scrolls when content overflows */
+            padding: 25px;
+            background-color: rgba(255, 255, 255, 0.45); /* White with 50% opacity */
+            border-radius: 0.01px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+            color: #333;
+            font-size: 18px;
+            display: block; /* not flex */
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .order-list div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.2); /* White with 50% opacity */
+        }
+
+        .order-list div:hover {
+            background-color: #80bfff;
+            transition: background-color 0.3s ease;
+        }
+
+/* current orders settings ... */
+
+         .order-container button {
+
+
+            padding: 10px;
+            background-color: #990000;
+            color: white;
+            border: none;
+            font-size: 15px;
+            font-weight: 1000;
+            border-radius: 10px;
+            cursor: pointer;
+            gap: 1px;
+            transition: background-color 0.3s, transform 0.3s ease;
+       
+        }
+
+        .order-container button:hover {
+            background-color: #4d0000;
+            transform: scale(1.05);
+        }
+
+
+
+.logout-container {
+  position: fixed; /* fixed so it stays even when scrolling */
+  top: 65px;
+  right: 100px;
+  z-index: 9999; /* stay on top of all other content */
+}
+
+
+
+.timestamp-container {
+  position: fixed; /* fixed so it stays even when scrolling */
+  top: 2px;
+  right: 270px;
+  z-index: 9999; /* stay on top of all other content */
+}
+
+
+.logout-container button {
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #cc0000;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+
+
+
+
+
+/* Add your existing styles here... */
+
+    /* Additional CSS for SubTotal, Tax, Total Due, Payment Amount, and Change */
+    .amount-breakdown input, .payment-summary input {
+        font-family: 'Source Sans Pro', sans-serif;
+        font-size: 100px; /* Font size */
+        font-weight: bold; /* Make text bold */
+        background-color: #ebebfa; 
+        width: 250px; /* Adjust this to control the width */
+
+    }
+
+
+
+/* Style for the Reference Number */
+#referenceNumber {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 24px; /* Increase the font size */
+    font-weight: bold;  /* Make the font bold */
+    color: #333; /* Dark color for readability */
+    text-align: center;  /* Center align the reference number */
+    background-color: #f5f5f5; /* Light gray background */
+    padding: 10px 15px;  /* Add some padding for better look */
+    border-radius: 10px;  /* Rounded corners */
+    border: 1px solid #ccc;  /* Light border */
+    width: 250px;  /* Set a fixed width for the input */
+    margin-top: 20px;  /* Add space above */
+    letter-spacing: 1px;  /* Slightly increase letter spacing */
+    text-transform: uppercase;  /* Convert the reference number to uppercase */
+}
+
+/* Apply the same font style and size to the Date & Time field */
+#timestamp {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 18px;  /* Same font size as reference number */
+    font-weight: bold;  /* Same font weight */
+    color: #000000;  /* Dark color for readability */
+    text-align: center;  /* Center align the date and time */
+    background-color: rgba(255, 255, 255, 0.1); /* White with 50% opacity */
+    padding: 10px 15px;  /* Same padding */
+    border-radius: 10px;  /* Same rounded corners */
+    border: 0px solid #ccc;  /* Same border */
+    width: 250px;  /* Set a fixed width */
+    margin-top: 20px;  /* Add some space above */
+    letter-spacing: 1px;  /* Slightly increase letter spacing */
+    text-transform: uppercase;  /* Optional: you can convert this to uppercase if needed */
+}
+
+
+        /* Right Panel: Products and Payment */
+        .product-container {
+            background-color: rgba(255, 255, 255, 0.45); /* White with 50% opacity */
+            padding: 100px;
+            border-radius: 1px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            display: block;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .product-container h2 {
+            font-family: 'Cooper Black';
+            font-size: 50px;
+            font-weight: bold;
+            text-align: center;
+            color: #333;
+            margin-bottom: 50px;
+            letter-spacing: 1px;
+        }
+
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 2fr);
+            gap: 20px;
+            padding: 15px 1;
+        }
+
+        .product-grid button {
+            background-color: rgba(255, 255, 255, 0.2); /* White with 50% opacity */
+            color: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: 600;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, transform 0.3s ease;
+        }
+
+        .product-grid button:hover {
+            background-color: #00264d;
+            transform: scale(10);
+        }
+
+        .amount-breakdown, .payment-summary {
+            display: grid;
+            grid-template-columns: 5fr 5fr;
+            gap: 30px;
+            padding: 50px;
+        }
+
+        .amount-breakdown input, .payment-summary input {
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 35px;
+            text-align: center;
+            color: #333;
+            transition: border-color 0.3s ease;
+        }
+
+        .amount-breakdown input:focus, .payment-summary input:focus {
+            border-color: #e6fff9;
+            outline: none;
+        }
+
+        .buttons button {
+            padding: 30px;
+            gap: 1px;
+           background-color: rgba(255, 255, 255, 0.5); /* White with 50% opacity */
+            color: black;
+            border: none;
+            font-size: 25px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s ease;
+        }
+
+        .buttons button:hover {
+            background-color: #99b3e6;
+            transform: scale(1.05);
+        }
+
+        /* Receipt Styles */
+   #receiptPreview {
+    margin-top: 20px;
+    padding: 30px;
+    background: #ffffff;
+    border: 10px solid #ddd;
+    border-radius: 15px;
+    display: none;
+    max-width: 400px;  /* Narrow width */
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+
+#receiptPreview h3 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+        /* Itemized List in Receipt */
+  .receipt-items {
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.receipt-items .item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.receipt-items .item p {
+    margin: 0;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.product-grid img {
+    width: 500px; /* Smaller icon width */
+    height: 500px; /* Smaller icon height */
+    border-radius: 10px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin: 5px;
+}
+
+.product-grid img:hover {
+    transform: scale(2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+
+        /* Tabs */
+        .tabs {
+            display: block;
+            justify-content: space-evenly;
+            margin-bottom: 20px;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;  /* Set the font to Segoe UI */
+
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            font-family: 'Segoe UI', sans-serif;  /* Set the font to Segoe UI */
+            font-size: 40px;
+            cursor: pointer;
+            background-color: #ffffff;
+            color: black;
+            border: none;
+            border-radius: 50px;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        /* Active Tab */
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 15px;
+        }
+
+        .icon-item {
+            text-align: center;
+        }
+
+        .icon-item img {
+            width: 200px;
+            height: 2000px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .icon-label {
+            font-size: 20px;
+            color: #333;
+            font-weight: 700;  /* Make it bold */
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr; /* Stack the panels on smaller screens */
+            }
+
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr); /* 2 items per row on smaller screens */
+            }
+
+            .tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .tab-button {
+                width: 100%;
+                margin-bottom: 10px;
+             font-weight: 1000;  /* Make it bold */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product-grid {
+                grid-template-columns: 1fr; /* Single column on very small screens */
+            }
+
+            .icon-item img {
+                width: 80px; /* Resize images on very small screens */
+                height: 80px;
+            }
+        }
+
+
+ .tabs {
+            display: flex;
+            margin-bottom: 20px;
+           font-weight: 1000;  /* Make it bold */
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            background-color: rgba(255, 255, 255, 0.45); /* White with 50% opacity */
+            border: 0px solid #ddd;
+            cursor: pointer;
+            font-size: 25px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-weight: 1000;  /* Make it bold */
+        }
+
+        /* Hover effect for tabs */
+        .tab-button:hover {
+            background-color: #000d33; /* Change background color on hover */
+            color: #fff; /* Change text color on hover */
+            border-color: #bbb; /* Darken border on hover */
+            transform: scale(1.2);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .icon-item {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .icon-item img {
+            width: 100px;
+            height: 100px;
+        }
+
+        .icon-label {
+            margin-top: 10px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+.search-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        #searchInput {
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.45); /* White with 50% opacity */
+            width: 80%;
+            max-width: 300px;
+            font-size: 20px;
+            border: 0px solid #ccc;
+            border-radius: 5px;
+        }
+
+    </style>
+
+ 
+
+</head>
+<body onload="initializePOS()">
+    <div class="container">
+        <!-- Left Panel: Order List -->
+        <div class="order-container">
+            <h1>Current Orders</h1>
+            <div id="orderList" class="order-list"></div>
+      
+
+
+ <!-- Amount Breakdown -->
+            <div class="panel amount-breakdown">
+                <div>
+                    <label>SubTotal: <input type="text" id="subtotal" value="0.00" disabled></label>
+                    <label>Vat(12%): <input type="text" id="tax" value="0.00" disabled></label>
+                </div>
+                <div>
+                    <label>Total Due: <input type="text" id="totalDue" value="0.00" disabled></label>
+
+                    <label>Reference #: <input type="text" id="referenceNumber" disabled></label>
+                </div>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="panel payment-summary">
+                <label>Payment Amount: <input type="text" id="paymentAmount" oninput="calculateChange()"></label>
+                <label>Change: <input type="text" id="change" disabled></label>
+            </div>
+
+            <!-- Buttons -->
+            <div class="panel buttons">
+                <button onclick="processPayment()">Confirm & Pay</button>
+                <button onclick="printReceipt()">Print Receipt</button>
+                <button onclick="resetOrder()">Next Customer</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+        </div>
+
+        <!-- Right Panel: Products and Payment -->
+        <div class="product-container">
+            <h2>xavi's pizza - Point of Sale</h2>
+
+            <!-- Order Details -->
+            <div class="panel order-header">
+
+
+
+
+            <div class="panel">
+                <div>
+            <div>
+
+
+            <!-- Product Grid -->
+
+<!-- Search Box -->
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search for a product..." onkeyup="searchProduct()">
+</div> 
+
+ <!-- Tab Buttons -->
+        <div class="tabs">
+            <button class="tab-button" onclick="showTab('all')">ALL</button>
+            <button class="tab-button" onclick="showTab('pizza')">PIZZA</button>
+            <button class="tab-button" onclick="showTab('drinks')">DRINKS</button>
+            <button class="tab-button" onclick="showTab('addons')">ADD-ONS</button>
+        </div>
+
+        <!-- Tab Contents -->
+
+ <div id="all" class="tab-content">
+            <h3>All</h3>
+            <div class="product-grid">
+                <div class="icon-item">
+                    <img src="https://static.vecteezy.com/system/resources/thumbnails/047/601/751/small_2x/a-freshly-baked-white-pizza-with-six-slices-and-cheese-cut-out-stock-png.png" alt="Cheese" onclick="addItem('Cheese', 99)">
+                    <div class="icon-label">Cheese - Php 99</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://png.pngtree.com/png-clipart/20230928/original/pngtree-pepperoni-pizza-isolated-with-clipping-path-png-image_13007806.png" alt="Pepperoni" onclick="addItem('Pepperoni', 99)">
+                    <div class="icon-label">Pepperoni - Php 99</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://png.pngtree.com/png-clipart/20231111/original/pngtree-dive-into-the-pineapple-paradise-of-hawaiian-pizza-png-image_13534949.png" alt="Hawaiian" onclick="addItem('Hawaiian', 89)">
+                    <div class="icon-label">Hawaiian - Php 89</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://png.pngtree.com/png-clipart/20231111/original/pngtree-the-meat-lovers-pizza-opera-on-a-plate-png-image_13534976.png" alt="Meaty" onclick="addItem('Meaty', 99)">
+                    <div class="icon-label">Meaty - Php 99</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://assets.website-files.com/63456fcaf05b46ced94c98d7/6389103ab64a2353ca775a88_image-16-menu-pizzaplanet-template.png" alt="Supreme" onclick="addItem('Supreme', 99)">
+                    <div class="icon-label">Supreme - Php 99</div>
+                </div>                
+                <div class="icon-item">
+                    <img src="https://static.vecteezy.com/system/resources/previews/030/740/116/non_2x/iced-tea-isolated-on-transparent-background-ice-tea-drink-in-a-plastic-cup-generative-ai-png.png" alt="IcedTea" onclick="addItem('IcedTea', 39)">
+                    <div class="icon-label">IcedTea - Php 39</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://purepng.com/public/uploads/large/purepng.com-coca-cola-cancoca-colacokecarbonated-soft-drinksoft-drinkcoke-can-1411527233399fihip.png" alt="Coke" onclick="addItem('Coke', 39)">
+                    <div class="icon-label">Coke - Php 39</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://www.pngall.com/wp-content/uploads/15/Fanta-PNG-Photo.png" alt="Royal" onclick="addItem('Fanta', 39)">
+                    <div class="icon-label">Fanta - Php 39</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://www.pngplay.com/wp-content/uploads/15/Sprite-Can-PNG-Photos.png" alt="Sprite" onclick="addItem('Sprite', 39)">
+                    <div class="icon-label">Sprite - Php 39</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://www.pngarts.com/files/4/Water-Bottle-Transparent-Background-PNG.png" alt="BottledWater" onclick="addItem('BottledWater', 39)">
+                    <div class="icon-label">BottledWater - Php 39</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://png.pngtree.com/png-clipart/20230325/original/pngtree-juicy-burgers-with-a-transparent-background-png-image_9002761.png" alt="Burger" onclick="addItem('Burger', 89)">
+                    <div class="icon-label">Burger - Php 89</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://static.vecteezy.com/system/resources/previews/025/064/780/original/french-fries-with-ai-generated-free-png.png" alt="Fries" onclick="addItem('Fries', 49)">
+                    <div class="icon-label">Fries - Php 49</div>
+
+
+    
+                </div>
+            </div>
+        </div>
+
+
+
+        <div id="pizza" class="tab-content">
+            <h3>Pizza</h3>
+            <div class="product-grid">
+                <div class="icon-item">
+                    <img src="https://static.vecteezy.com/system/resources/thumbnails/047/601/751/small_2x/a-freshly-baked-white-pizza-with-six-slices-and-cheese-cut-out-stock-png.png" alt="Cheese" onclick="addItem('Cheese', 99)">
+                    <div class="icon-label">Cheese - Php 99</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://png.pngtree.com/png-clipart/20230928/original/pngtree-pepperoni-pizza-isolated-with-clipping-path-png-image_13007806.png" alt="Pepperoni" onclick="addItem('Pepperoni', 99)">
+                    <div class="icon-label">Pepperoni - Php 99</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://png.pngtree.com/png-clipart/20231111/original/pngtree-dive-into-the-pineapple-paradise-of-hawaiian-pizza-png-image_13534949.png" alt="Hawaiian" onclick="addItem('Hawaiian', 89)">
+                    <div class="icon-label">Hawaiian - Php 89</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://png.pngtree.com/png-clipart/20231111/original/pngtree-the-meat-lovers-pizza-opera-on-a-plate-png-image_13534976.png" alt="Meaty" onclick="addItem('Meaty', 99)">
+                    <div class="icon-label">Meaty - Php 99</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://assets.website-files.com/63456fcaf05b46ced94c98d7/6389103ab64a2353ca775a88_image-16-menu-pizzaplanet-template.png" alt="Supreme" onclick="addItem('Supreme', 99)">
+                    <div class="icon-label">Supreme - Php 99</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="drinks" class="tab-content">
+            <h3>Drinks</h3>
+            <div class="product-grid">
+                <div class="icon-item">
+                    <img src="https://static.vecteezy.com/system/resources/previews/030/740/116/non_2x/iced-tea-isolated-on-transparent-background-ice-tea-drink-in-a-plastic-cup-generative-ai-png.png" alt="IcedTea" onclick="addItem('IcedTea', 39)">
+                    <div class="icon-label">IcedTea - Php 39</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://purepng.com/public/uploads/large/purepng.com-coca-cola-cancoca-colacokecarbonated-soft-drinksoft-drinkcoke-can-1411527233399fihip.png" alt="Coke" onclick="addItem('Coke', 39)">
+                    <div class="icon-label">Coke - Php 39</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://www.pngall.com/wp-content/uploads/15/Fanta-PNG-Photo.png" alt="Royal" onclick="addItem('Fanta', 39)">
+                    <div class="icon-label">Fanta - Php 39</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://www.pngplay.com/wp-content/uploads/15/Sprite-Can-PNG-Photos.png" alt="Sprite" onclick="addItem('Sprite', 39)">
+                    <div class="icon-label">Sprite - Php 39</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://www.pngarts.com/files/4/Water-Bottle-Transparent-Background-PNG.png" alt="BottledWater" onclick="addItem('BottledWater', 39)">
+                    <div class="icon-label">BottledWater - Php 39</div>
+         
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="addons" class="tab-content">
+            <h3>Add-ons</h3>
+            <div class="product-grid">
+                <div class="icon-item">
+                    <img src="https://png.pngtree.com/png-clipart/20230325/original/pngtree-juicy-burgers-with-a-transparent-background-png-image_9002761.png" alt="Burger" onclick="addItem('Burger', 89)">
+                    <div class="icon-label">Burger - Php 89</div>
+                </div>
+                <div class="icon-item">
+                    <img src="https://static.vecteezy.com/system/resources/previews/025/064/780/original/french-fries-with-ai-generated-free-png.png" alt="Fries" onclick="addItem('Fries', 49)">
+                    <div class="icon-label">Fries - Php 49</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Function to search products based on input
+        function searchProduct() {
+            var input, filter, products, productGrid, productLabel, i, txtValue;
+            input = document.getElementById('searchInput');
+            filter = input.value.toLowerCase();
+            productGrid = document.querySelectorAll('.tab-content .product-grid');
+            
+            // Loop through each tab content
+            productGrid.forEach(function(grid) {
+                products = grid.querySelectorAll('.icon-item');
+                
+                // Loop through each product
+                products.forEach(function(product) {
+                    productLabel = product.querySelector('.icon-label');
+                    txtValue = productLabel.textContent || productLabel.innerText;
+                    
+                    // Check if the product name matches the search input
+                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                        product.style.display = "";
+                    } else {
+                        product.style.display = "none";
+                    }
+                });
+            });
+        }
+
+        // Function to switch between tabs
+        function showTab(tabId) {
+            // Hide all tab content
+            var contents = document.querySelectorAll('.tab-content');
+            contents.forEach(function(content) {
+                content.style.display = 'none';
+            });
+
+            // Show the selected tab content
+            document.getElementById(tabId).style.display = 'block';
+        }
+
+        // Show the All tab by default
+        document.addEventListener("DOMContentLoaded", function() {
+            showTab('all');
+        });
+
+        // Function to add items to the order (you can customize this function)
+        function addItem(item, price) {
+            alert(item + " added to your order for Php " + price);
+        }
+    </script>
+
+
+
+          
+
+<!-- Logo -->
+    <img id="logo" src="https://images.vexels.com/media/users/3/131779/isolated/preview/3d4929d289ad98ad71637d5c257d2f08-pizza-logo-1-by-vexels.png" alt="Xavi's Pizza Logo">
+
+    <div class="container">
+        <!-- Your other content here -->
+    </div>
+
+
+
+
+
+    <!-- Receipt Preview -->
+    <div id="receiptPreview">
+        <h3>Sales Invoice</h3>
+        <h4>Date & Time</h4>
+        <p id="receiptDate"></p>
+        
+        <!-- Ordered Items -->
+        <h4>Order Details</h4>  
+        <div id="receiptItems" class="receipt-items"></div>
+
+        <p class="bold">Reference #: <span id="receiptReferenceNumber"></span></p>
+
+        <p class="bold">SubTotal: Php <span id="receiptSubtotal"></span></p>
+        <p class="bold">Tax (12%): Php <span id="receiptTax"></span></p>
+        <p class="bold">Total Due: Php <span id="receiptTotalDue"></span></p>
+        <p class="bold">Amount Paid: Php <span id="receiptAmountPaid"></span></p>
+        <p class="bold">Change: Php <span id="receiptChange"></span></p>
+    </div>
+
+<script>
+    let subtotal = 0;
+    let usedReferenceNumbers = new Set();
+    let orderItems = {};  // To keep track of ordered items and quantities
+
+    // Update timestamp every second
+    setInterval(updateTimestamp, 1000);
+
+    function updateTimestamp() {
+        const now = new Date();
+        document.getElementById("timestamp").textContent = now.toLocaleString();
+    }
+
+    // Function to generate unique reference number
+    function generateReferenceNumber() {
+        let referenceNumber;
+        do {
+            referenceNumber = Math.floor(100000 + Math.random() * 900000);
+        } while (usedReferenceNumbers.has(referenceNumber));
+        usedReferenceNumbers.add(referenceNumber);
+        return referenceNumber;
+    }
+
+    // Add item to the order list
+    function addItem(name, price) {
+        const orderList = document.getElementById('orderList');
+        if (!orderItems[name]) {
+            orderItems[name] = { price: price, quantity: 1 };
+        } else {
+            orderItems[name].quantity += 1;
+        }
+
+        // Update order list UI
+        updateOrderList();
+
+        updateTotals(price);
+    }
+
+    // Update order list UI
+    function updateOrderList() {
+        const orderList = document.getElementById('orderList');
+        orderList.innerHTML = ''; // Clear the current list
+
+        for (let item in orderItems) {
+            const { price, quantity } = orderItems[item];
+            const orderEntry = document.createElement('div');
+            orderEntry.textContent = `${item} x ${quantity} - Php ${(price * quantity).toFixed(2)}`;
+
+            // Create the minus button (−) to remove an item
+            const minusButton = document.createElement('button');
+            minusButton.textContent = '−';  // Minus symbol
+            minusButton.onclick = () => removeItem(item, price);
+            orderEntry.appendChild(minusButton);
+
+            // Create the plus button (＋) to add an item
+            const plusButton = document.createElement('button');
+            plusButton.textContent = '＋';  // Plus symbol
+            plusButton.onclick = () => addItem(item, price);
+            orderEntry.appendChild(plusButton);
+
+            orderList.appendChild(orderEntry);
+        }
+    }
+
+    // Remove item from the order
+    function removeItem(name, price) {
+        if (orderItems[name]) {
+            orderItems[name].quantity -= 1;
+            if (orderItems[name].quantity <= 0) {
+                delete orderItems[name];
+            }
+        }
+        updateOrderList();
+        updateTotals(-price);
+    }
+
+    // Update the totals (subtotal, tax, total due)
+    function updateTotals(priceChange) {
+        subtotal += priceChange;
+        const tax = subtotal * 0.12;
+        const totalDue = subtotal + tax;
+
+        // Format the numbers with commas
+        document.getElementById("subtotal").value = formatCurrency(subtotal);
+        document.getElementById("tax").value = formatCurrency(tax);
+        document.getElementById("totalDue").value = formatCurrency(totalDue);
+    }
+
+    // Calculate change and format with commas
+    function calculateChange() {
+        const paymentAmount = parseFloat(document.getElementById("paymentAmount").value.replace(/,/g, '') || 0);
+        const totalDue = parseFloat(document.getElementById("totalDue").value.replace(/,/g, '') || 0);
+        const change = paymentAmount - totalDue;
+
+        document.getElementById("change").value = formatCurrency(change);
+    }
+
+    // Format a number as currency with commas
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('en-US', { style: 'decimal', minimumFractionDigits: 2 }).format(amount); // Format with 2 decimal places
+    }
+
+    // Reset the order
+    function resetOrder() {
+        subtotal = 0;
+        orderItems = {};
+        updateOrderList();
+        updateTotals(0);
+        document.getElementById("paymentAmount").value = '';
+        document.getElementById('referenceNumber').value = '';  // Reset Reference Number
+        document.getElementById("change").value = '';
+    }
+
+    // Process the payment
+    function processPayment() {
+        const paymentAmount = parseFloat(document.getElementById("paymentAmount").value);
+        const totalDue = parseFloat(document.getElementById("totalDue").value);
+
+        if (paymentAmount < totalDue) {
+            alert("Insufficient payment.");
+            return;
+        }
+
+        alert("Payment successful.");
+
+        // Generate new reference number after successful payment
+        const newReferenceNumber = generateReferenceNumber();
+        document.getElementById('referenceNumber').value = newReferenceNumber; // Display the reference number
+
+        printReceipt();
+    }
+
+    // Print the receipt
+    function printReceipt() {
+        const receiptItems = document.getElementById('receiptItems');
+        receiptItems.innerHTML = ''; // Clear any previous items
+
+        // Populate the receipt items with 3 columns
+        for (let item in orderItems) {
+            const { price, quantity } = orderItems[item];
+            const totalPrice = price * quantity;
+            const itemElement = document.createElement('div');
+            itemElement.classList.add('item');
+            itemElement.innerHTML = ` 
+                <p>${item}</p>
+                <p>${quantity} x Php ${price.toFixed(2)}</p>
+                <p>Php ${totalPrice.toFixed(2)}</p>
+            `;
+            receiptItems.appendChild(itemElement);
+        }
+
+        // Display the receipt info
+        document.getElementById('receiptReferenceNumber').textContent = document.getElementById('referenceNumber').value;
+        document.getElementById('receiptDate').textContent = new Date().toLocaleString();
+        document.getElementById('receiptSubtotal').textContent = document.getElementById('subtotal').value;
+        document.getElementById('receiptTax').textContent = document.getElementById('tax').value;
+        document.getElementById('receiptTotalDue').textContent = document.getElementById('totalDue').value;
+        document.getElementById('receiptAmountPaid').textContent = document.getElementById('paymentAmount').value;
+        document.getElementById('receiptChange').textContent = document.getElementById('change').value;
+
+        // Show the receipt preview
+        document.getElementById('receiptPreview').style.display = 'block';
+    }
+
+    // Initialize POS
+    function initializePOS() {
+        resetOrder();
+    }
+</script>
+
+<style>
+    /* Style for the + and - buttons */
+    .adjust-button {
+        font-size: 60px;          /* Smaller font size */
+        padding: 5px 10px;        /* Smaller padding */
+        margin: 0 3px;            /* Add space between the buttons */
+        width: 60px;              /* Fixed width */
+        height: 30px;             /* Fixed height */
+        text-align: center;       /* Center the text inside */
+        line-height: 0.5;         /* Adjust the line height for alignment */
+        cursor: pointer;         /* Pointer cursor to indicate clickable */
+        border: 1px solid #ccc;   /* Border around the button */
+        border-radius: 5px;       /* Rounded corners */
+        background-color: #f0f0f0; /* Light background */
+        transition: background-color 0.3s ease; /* Smooth background transition */
+    }
+
+    /* Hover effect for the buttons */
+    .adjust-button:hover {
+        background-color: #4d0000;  /* Change background on hover */
+    }
+
+ /* Container to align the buttons vertically */
+    .button-container {
+        display: flex;
+        flex-direction: column;   /* Align buttons vertically */
+        align-items: center;      /* Center align buttons */
+    }
+
+    /* Aligning the buttons next to each other */
+    #orderList div {
+        display: flex;
+        align-items: center;      /* Align text and buttons vertically */
+        margin-bottom: 10px;      /* Space between each order entry */
+    }
+
+    #orderList div span {
+        flex-grow: block;             /* Allow the name/quantity to take available space */
+    }
+</style>
+
+
+
+</body>
+</html>
+
+
+
+        </div>
+    </div>
+
+     <script>
+        // Sample usernames and passwords
+        const users = [
+            { username: "admin", password: "pizza123", name: "Admin" },
+            { username: "john", password: "john123", name: "John Doe" },
+            { username: "mary", password: "mary123", name: "Mary Smith" }
+        ];
+
+        // Function to check if the user is already logged in
+        function checkLogin() {
+            if (localStorage.getItem("isLoggedIn") === "true") {
+                showMainPage();
+            } else {
+                showLoginPage();
+            }
+        }
+
+        // Login function
+        function login() {
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const errorMsg = document.getElementById("loginError");
+
+            // Check if user is in the list of valid users
+            const user = users.find(user => user.username === username && user.password === password);
+            if (user) {
+                // Store user information in localStorage
+                localStorage.setItem("isLoggedIn", "true");
+                localStorage.setItem("username", user.username);
+                localStorage.setItem("userName", user.name);
+                showMainPage();
+            } else {
+                errorMsg.textContent = "Invalid username or password.";
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem("isLoggedIn");
+            localStorage.removeItem("username");
+            localStorage.removeItem("userName");
+            showLoginPage();
+        }
+
+        // Function to show login page
+        function showLoginPage() {
+            document.getElementById("loginPage").style.display = "flex";
+            document.getElementById("mainPage").style.display = "none";
+        }
+
+        // Function to show the main page
+        function showMainPage() {
+            document.getElementById("loginPage").style.display = "none";
+            document.getElementById("mainPage").style.display = "block";
+            displayUserGreeting();
+        }
+
+        // Function to display user greeting on the main page
+        function displayUserGreeting() {
+            const username = localStorage.getItem("userName");
+            const greeting = document.getElementById("userGreeting");
+            greeting.textContent = "Logged in as: " + username;
+        }
+    </script>
+
+</body>
+
+<!-- 🧾 TRANSACTION HISTORY SCRIPT -->
+<script>
+    let transactionHistory = JSON.parse(localStorage.getItem('transactionHistory')) || [];
+
+    function recordTransactionFromReceipt() {
+        const items = [];
+        for (let item in orderItems) {
+            const { price, quantity } = orderItems[item];
+            items.push({
+                name: item,
+                price: price,
+                quantity: quantity
+            });
+        }
+
+        const transaction = {
+            timestamp: new Date().toLocaleString(),
+            reference: document.getElementById('referenceNumber').value,
+            items: items,
+            subtotal: document.getElementById('subtotal').value,
+            tax: document.getElementById('tax').value,
+            totalDue: document.getElementById('totalDue').value,
+            amountPaid: document.getElementById('paymentAmount').value,
+            change: document.getElementById('change').value
+        };
+
+        transactionHistory.push(transaction);
+        localStorage.setItem('transactionHistory', JSON.stringify(transactionHistory));
+    }
+
+    function showTransactionHistory() {
+        const history = JSON.parse(localStorage.getItem('transactionHistory')) || [];
+        const modalBody = document.getElementById('transaction-modal-body');
+        modalBody.innerHTML = '';
+
+        if (history.length === 0) {
+            modalBody.innerHTML = '<p>No transactions yet.</p>';
+        } else {
+            history.forEach((txn, index) => {
+                const txnDiv = document.createElement('div');
+                txnDiv.innerHTML = `
+                    <strong>#${index + 1} | ${txn.timestamp}</strong><br>
+                    <strong>Reference:</strong> ${txn.reference}<br>
+                    ${txn.items.map(item => `• ${item.name} x${item.quantity} = Php ${(item.price * item.quantity).toFixed(2)}`).join('<br>')}
+                    <br>
+                    <strong>Subtotal:</strong> Php ${txn.subtotal}<br>
+                    <strong>Tax:</strong> Php ${txn.tax}<br>
+                    <strong>Total Due:</strong> Php ${txn.totalDue}<br>
+                    <strong>Amount Paid:</strong> Php ${txn.amountPaid}<br>
+                    <strong>Change:</strong> Php ${txn.change}
+                    <hr>
+                `;
+                modalBody.appendChild(txnDiv);
+            });
+        }
+
+        document.getElementById('transaction-modal').style.display = 'block';
+    }
+
+    function closeTransactionModal() {
+        document.getElementById('transaction-modal').style.display = 'none';
+    }
+
+    function clearTransactionHistory() {
+        if (confirm('Clear all transaction history?')) {
+            localStorage.removeItem('transactionHistory');
+            transactionHistory = [];
+            alert('Transaction history cleared.');
+            closeTransactionModal();
+        }
+    }
+
+    // OPTIONAL: Add this inside your processPayment() after payment success
+    function processPayment() {
+        const paymentAmount = parseFloat(document.getElementById("paymentAmount").value);
+        const totalDue = parseFloat(document.getElementById("totalDue").value);
+
+        if (paymentAmount < totalDue) {
+            alert("Insufficient payment.");
+            return;
+        }
+
+        alert("Payment successful.");
+
+        const newReferenceNumber = generateReferenceNumber();
+        document.getElementById('referenceNumber').value = newReferenceNumber;
+
+        printReceipt();
+
+        // ✅ Save to transaction history
+        recordTransactionFromReceipt();
+    }
+</script>
+
+<!-- 🧾 MODAL STYLES & STRUCTURE -->
+<style>
+    #transaction-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    #transaction-modal-content {
+        background-color: white;
+        margin: 10% auto;
+        padding: 60px;
+        width: 50%;
+        max-height: 80%;
+        overflow-y: auto;
+        border-radius: 10px;
+    }
+
+    #transaction-modal button {
+        margin-top: 10px;
+    }
+
+
+</style>
+
+<!-- 🧾 MODAL HTML -->
+<div id="transaction-modal">
+<div id="transaction-modal-content">
+    <h2>Transaction History</h2>
+    <div id="transaction-modal-body"></div>
+    <button onclick="closeTransactionModal()">CLOSE</button>
+    <button onclick="clearTransactionHistory()">CLEAR HISTORY</button>
+    <button onclick="exportTransactionHistoryToCSV()">📁 Export to CSV</button>
+
+
+</div>
+
+</div>
+
+
+
+
