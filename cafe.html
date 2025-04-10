@@ -107,9 +107,16 @@
         qrbox: 250,
       });
 
-      html5QrCode.render(handleQrScan);
-      startScannerButton.style.display = "none";
-      stopScannerButton.style.display = "inline";
+      // Check if permissions are granted
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(() => {
+          html5QrCode.render(handleQrScan);
+          startScannerButton.style.display = "none";
+          stopScannerButton.style.display = "inline";
+        })
+        .catch((err) => {
+          alert("Camera permission denied! Please allow access to the camera.");
+        });
     };
 
     const stopScanning = () => {
