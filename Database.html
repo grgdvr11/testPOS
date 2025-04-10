@@ -6,6 +6,9 @@
         <!-- Logo -->
         <img src="https://images.vexels.com/media/users/3/131779/isolated/preview/3d4929d289ad98ad71637d5c257d2f08-pizza-logo-1-by-vexels.png" alt="Xavi's Pizza Logo" style="width: 150px; margin-bottom: 20px;">
 
+
+
+
         <h2 style="font-size: 40px; margin-bottom: 20px; color: white;">Xavi's Pizza - Login</h2>
         <input id="username" type="text" placeholder="Username" style="padding: 10px; margin: 10px; font-size: 25px;">
         <input id="password" type="password" placeholder="Password" style="padding: 10px; margin: 10px; font-size: 25px;">
@@ -22,13 +25,19 @@
  
           
 <div class="pos-wrapper">
+
   <div class="logout-container">
+<span id="userGreeting" style="color: black; font-size: 18px; font-weight: bold;"></span>
 <button onclick="logout()" style="padding: 10px 20px; font-size: 16px; background-color: #cc0000; color: white; border: none; border-radius: 5px; cursor: pointer;">LOGOUT</button>
 <div class="timestamp-container">
 
+
   <div id="timestamp" class="timestamp"></div>
 
+
+
 <!-- 🧾 VIEW HISTORY BUTTON -->
+
 <button onclick="showTransactionHistory()">🧾 VIEW TRANSACTION HISTORY</button>
 
 
@@ -97,6 +106,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -112,7 +122,6 @@
 
             box-sizing: border-box;
         }
-
 
 
 /* Style for the Title (Product Container Title) */
@@ -137,6 +146,11 @@
             align-items: flex-start;
             height: 50vh;
             padding: 100px;
+     
+     transform: scale(0.95);
+      transform-origin: top left;
+      height: 133.33%;
+      overflow-x: hidden;
 
 
         /* Position the logo at the upper left of the screen */
@@ -216,11 +230,11 @@
          .order-container button {
 
 
-            padding: 10px;
+            padding: 15px;
             background-color: #990000;
             color: white;
             border: none;
-            font-size: 15px;
+            font-size: 25px;
             font-weight: 1000;
             border-radius: 10px;
             cursor: pointer;
@@ -228,6 +242,30 @@
             transition: background-color 0.3s, transform 0.3s ease;
        
         }
+
+
+.adjust-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    font-size: 18px;
+    font-weight: bold;
+
+    width: 30px;
+    height: 30px;
+
+    border: none;
+    border-radius: 50%;
+
+    background-color: #e0ebff;
+    color: #2979ff;
+
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    padding: 0;
+}
+
 
         .order-container button:hover {
             background-color: #4d0000;
@@ -238,7 +276,7 @@
 
 .logout-container {
   position: fixed; /* fixed so it stays even when scrolling */
-  top: 65px;
+  top: 20px;
   right: 100px;
   z-index: 9999; /* stay on top of all other content */
 }
@@ -315,6 +353,8 @@
     letter-spacing: 1px;  /* Slightly increase letter spacing */
     text-transform: uppercase;  /* Optional: you can convert this to uppercase if needed */
 }
+
+
 
 
         /* Right Panel: Products and Payment */
@@ -656,11 +696,34 @@
                 <label>Change: <input type="text" id="change" disabled></label>
             </div>
 
+
+
             <!-- Buttons -->
             <div class="panel buttons">
                 <button onclick="processPayment()">Confirm & Pay</button>
                 <button onclick="printReceipt()">Print Receipt</button>
                 <button onclick="resetOrder()">Next Customer</button>
+
+
+    <!-- Receipt Preview -->
+    <div id="receiptPreview">
+        <h2>Sales Invoice</h2>
+        <h4>Date & Time</h4>
+        <p id="receiptDate"></p>
+        
+        <!-- Ordered Items -->
+        <h4>Order Details</h4>  
+        <div id="receiptItems" class="receipt-items"></div>
+
+        <p class="bold">Reference #: <span id="receiptReferenceNumber"></span></p>
+
+        <p class="bold">SubTotal: Php <span id="receiptSubtotal"></span></p>
+        <p class="bold">Tax (12%): Php <span id="receiptTax"></span></p>
+        <p class="bold">Total Due: Php <span id="receiptTotalDue"></span></p>
+        <p class="bold">Amount Paid: Php <span id="receiptAmountPaid"></span></p>
+        <p class="bold">Change: Php <span id="receiptChange"></span></p>
+    </div>
+
             </div>
         </div>
     </div>
@@ -684,6 +747,8 @@
             <div class="panel">
                 <div>
             <div>
+
+
 
 
             <!-- Product Grid -->
@@ -753,8 +818,6 @@
                 <div class="icon-item">
                     <img src="https://static.vecteezy.com/system/resources/previews/025/064/780/original/french-fries-with-ai-generated-free-png.png" alt="Fries" onclick="addItem('Fries', 49)">
                     <div class="icon-label">Fries - Php 49</div>
-
-
     
                 </div>
             </div>
@@ -832,6 +895,9 @@
 
     </div>
 
+
+
+
     <script>
         // Function to search products based on input
         function searchProduct() {
@@ -897,26 +963,10 @@
 
 
 
-    <!-- Receipt Preview -->
-    <div id="receiptPreview">
-        <h3>Sales Invoice</h3>
-        <h4>Date & Time</h4>
-        <p id="receiptDate"></p>
-        
-        <!-- Ordered Items -->
-        <h4>Order Details</h4>  
-        <div id="receiptItems" class="receipt-items"></div>
 
-        <p class="bold">Reference #: <span id="receiptReferenceNumber"></span></p>
-
-        <p class="bold">SubTotal: Php <span id="receiptSubtotal"></span></p>
-        <p class="bold">Tax (12%): Php <span id="receiptTax"></span></p>
-        <p class="bold">Total Due: Php <span id="receiptTotalDue"></span></p>
-        <p class="bold">Amount Paid: Php <span id="receiptAmountPaid"></span></p>
-        <p class="bold">Change: Php <span id="receiptChange"></span></p>
-    </div>
 
 <script>
+
     let subtotal = 0;
     let usedReferenceNumbers = new Set();
     let orderItems = {};  // To keep track of ordered items and quantities
@@ -955,30 +1005,49 @@
     }
 
     // Update order list UI
-    function updateOrderList() {
-        const orderList = document.getElementById('orderList');
-        orderList.innerHTML = ''; // Clear the current list
+function updateOrderList() {
+    const orderList = document.getElementById('orderList');
+    orderList.innerHTML = ''; // Clear the current list
 
-        for (let item in orderItems) {
-            const { price, quantity } = orderItems[item];
-            const orderEntry = document.createElement('div');
-            orderEntry.textContent = `${item} x ${quantity} - Php ${(price * quantity).toFixed(2)}`;
+    for (let item in orderItems) {
+        const { price, quantity } = orderItems[item];
 
-            // Create the minus button (−) to remove an item
-            const minusButton = document.createElement('button');
-            minusButton.textContent = '−';  // Minus symbol
-            minusButton.onclick = () => removeItem(item, price);
-            orderEntry.appendChild(minusButton);
+        const orderEntry = document.createElement('div');
+        orderEntry.className = 'order-entry';
 
-            // Create the plus button (＋) to add an item
-            const plusButton = document.createElement('button');
-            plusButton.textContent = '＋';  // Plus symbol
-            plusButton.onclick = () => addItem(item, price);
-            orderEntry.appendChild(plusButton);
+        const itemInfo = document.createElement('div');
+        itemInfo.textContent = `${item} - Php ${(price * quantity).toFixed(2)}`;
+        itemInfo.style.flexGrow = '1';
 
-            orderList.appendChild(orderEntry);
-        }
+        const quantityControl = document.createElement('div');
+        quantityControl.className = 'quantity-control';
+
+        const minusButton = document.createElement('button');
+        minusButton.textContent = '−';
+        minusButton.className = 'adjust-button';
+        minusButton.disabled = false;
+        minusButton.onclick = () => removeItem(item, price);
+
+        const quantitySpan = document.createElement('span');
+        quantitySpan.textContent = quantity;
+        quantitySpan.className = 'quantity-display';
+
+        const plusButton = document.createElement('button');
+        plusButton.textContent = '+';
+        plusButton.className = 'adjust-button';
+        plusButton.onclick = () => addItem(item, price);
+
+        quantityControl.appendChild(minusButton);
+        quantityControl.appendChild(quantitySpan);
+        quantityControl.appendChild(plusButton);
+
+        orderEntry.appendChild(itemInfo);
+        orderEntry.appendChild(quantityControl);
+
+        orderList.appendChild(orderEntry);
     }
+}
+
 
     // Remove item from the order
     function removeItem(name, price) {
@@ -1088,43 +1157,54 @@
 
 <style>
     /* Style for the + and - buttons */
-    .adjust-button {
-        font-size: 60px;          /* Smaller font size */
-        padding: 5px 10px;        /* Smaller padding */
-        margin: 0 3px;            /* Add space between the buttons */
-        width: 60px;              /* Fixed width */
-        height: 30px;             /* Fixed height */
-        text-align: center;       /* Center the text inside */
-        line-height: 0.5;         /* Adjust the line height for alignment */
-        cursor: pointer;         /* Pointer cursor to indicate clickable */
-        border: 1px solid #ccc;   /* Border around the button */
-        border-radius: 5px;       /* Rounded corners */
-        background-color: #f0f0f0; /* Light background */
-        transition: background-color 0.3s ease; /* Smooth background transition */
-    }
+  .adjust-button {
+    font-size: 18px;
+    font-weight: bold;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background-color: #e0ebff;
+    color: #2979ff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
 
-    /* Hover effect for the buttons */
-    .adjust-button:hover {
-        background-color: #4d0000;  /* Change background on hover */
-    }
+.adjust-button:hover:not(:disabled) {
+    background-color: #cfe0ff;
+}
 
- /* Container to align the buttons vertically */
-    .button-container {
-        display: flex;
-        flex-direction: column;   /* Align buttons vertically */
-        align-items: center;      /* Center align buttons */
-    }
+.adjust-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
 
-    /* Aligning the buttons next to each other */
-    #orderList div {
-        display: flex;
-        align-items: center;      /* Align text and buttons vertically */
-        margin-bottom: 10px;      /* Space between each order entry */
-    }
+.quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #f0f4ff;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
 
-    #orderList div span {
-        flex-grow: block;             /* Allow the name/quantity to take available space */
-    }
+.quantity-display {
+    font-size: 20px;
+    min-width: 20px;
+    text-align: center;
+}
+
+#orderList .order-entry {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
 </style>
 
 
@@ -1141,8 +1221,8 @@
         // Sample usernames and passwords
         const users = [
             { username: "admin", password: "pizza123", name: "Admin" },
-            { username: "john", password: "john123", name: "John Doe" },
-            { username: "mary", password: "mary123", name: "Mary Smith" }
+            { username: "xavi", password: "xavi123", name: "Xavi" },
+            { username: "kelsey", password: "kelsey123", name: "Kelsey" }
         ];
 
         // Function to check if the user is already logged in
@@ -1198,7 +1278,7 @@
         function displayUserGreeting() {
             const username = localStorage.getItem("userName");
             const greeting = document.getElementById("userGreeting");
-            greeting.textContent = "Logged in as: " + username;
+            greeting.textContent = "Logged as: " + username;
         }
     </script>
 
@@ -1342,7 +1422,3 @@
 </div>
 
 </div>
-
-
-
-
