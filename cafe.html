@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR/Barcode Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script> <!-- Library to parse CSV -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    #scanner-container {
+      width: 100%;
+      max-width: 600px;
+      margin: auto;
+    }
+    #qr-code-scanner {
+      width: 100%;
+      height: 300px;
+    }
+    #transaction-history {
+      margin-top: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="scanner-container">
+    <h1>QR/Barcode Scanner</h1>
+    <div id="qr-code-scanner"></div>
+    <button id="stop-scanner" style="display:none;">Stop Scanner</button>
+    <button id="start-scanner">Start Scanner</button>
+
+    <div id="transaction-history">
+      <h3>Transaction History</h3>
+      <table id="transaction-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Price</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button id="export-csv">Export as CSV</button>
+    </div>
+  </div>
+
+  <script>
+    let transactionHistory = [];
+
+    const startScannerButton = document.getElementById("start-scanner");
+    const stopScannerButton = document.getElementById("stop-scanner");
+    const exportCsvButton = document.getElementById("export-csv");
+
+    const qrScannerElement = document.getElementById("qr-code-scanner");
+
+    const Html5QrcodeScanner = window.Html5QrcodeScanner;
+    const csvExportOptions = {
+      delimiter: ",",
+      newline: "\r\n"
+    };
+
+    const updateTransactionTable = () => {
+      const tableBody = document.querySelector("#transaction-table tbody");
+      tableBody.innerHTML = "";
+      transactionHistory.forEach((transaction) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${transaction.item}</td><td>${transaction.price}</td><td>${transaction.timestamp}</td>`;
+        tableBody.appendChild(row);
+      });
+    };
+
+    const handleQrScan = (decodedText) => {
+      // In this example, we're just taking the entire decodedText as the item name
+      const newTransaction = {
+        item: decodedText,
+        price: 20, // Assume a fixed price for the example (you could parse this from the QR code)
+        timestamp: new Date().toISOString(),
+      };
+
+      // Add to the history
+      transactionHistory.push(newTransaction);
+      updateTransactionTable();
+    };
+
+    const startScanning = () => {
+      const html5QrCode = new Html5QrcodeScanner("qr-code-scanner", {
+        fps: 10,
+        qrbox: 250,
+      });
+
+      html5QrCode.render(handleQrScan);
+      startScannerButton.style.display = "none";
+      stopScannerButton.style.display = "inline";
+    };
+
+    const stopScanning = () => {
+      Html5QrcodeScanner.stop();
+      startScannerButton.style.display = "inline";
+      stopScannerButton.style.display = "none";
+    };
+
+    const exportToCSV = () => {
+      const csvData = Papa.unparse(transactionHistory);
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "transaction_history.csv";
+      link.click();
+    };
+
+    startScannerButton.addEventListener("click", startScanning);
+    stopScannerButton.addEventListener("click", stopScanning);
+    exportCsvButton.addEventListener("click", exportToCSV);
+  </script>
+
+</body>
+</html>
