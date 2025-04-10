@@ -1,94 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Open Camera and Scan</title>
-    <script src="https://unpkg.com/@zxing/library@0.18.7/dist/index.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live QR/Barcode Scanner</title>
+  <script src="https://unpkg.com/@zxing/browser@latest"></script>
 </head>
 <body>
-    <button onclick="openCamera()">Open Camera</button>
-    <video id="video" width="300" height="200" style="border: 1px solid black"></video>
+  <h1>QR/Barcode Scanner</h1>
+  <button onclick="startScanner()">Start Camera</button>
+  <video id="video" width="300" height="200" style="border:1px solid #333"></video>
 
-    <h2>TRANSACTION HISTORY</h2>
-    <table id="transactionHistory" border="1">
-        <thead>
-            <tr>
-                <th>Item</th>
-                <th>Details</th>
-                <th>Timestamp</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
+  <h2>Transaction History</h2>
+  <table border="1" id="transactionHistory">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="exportCSV()">Export to CSV</button>
 
-    <button onclick="exportCSV()">Export to CSV</button>
+  <script>
+    const { BrowserMultiFormatReader } = ZXingBrowser;
+    const codeReader = new BrowserMultiFormatReader();
+    const transactionHistory = [];
 
-    <script>
-        const transactionHistory = [];
-        const codeReader = new ZXing.BrowserMultiFormatReader();
+    async function startScanner() {
+      const videoElement = document.getElementById('video');
 
-        async function openCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-                document.getElementById('video').srcObject = stream;
+      try {
+        const devices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
+        if (devices.length === 0) {
+          alert('No camera found');
+          return;
+        }
 
-                // Start scanning
-                startScanning(stream);
-            } catch (err) {
-                alert("Error accessing camera: " + err);
+        const selectedDeviceId = devices[0].deviceId;
+
+        codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, (result, err, controls) => {
+          if (result) {
+            const text = result.getText();
+            const timestamp = new Date().toLocaleString();
+
+            // Prevent duplicates in rapid succession
+            const lastEntry = transactionHistory[transactionHistory.length - 1];
+            if (!lastEntry || lastEntry.item !== text) {
+              transactionHistory.push({ item: text, timestamp });
+              updateTable();
             }
-        }
+          }
 
-        function startScanning(stream) {
-            const videoElement = document.getElementById('video');
+          if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
+            console.error(err);
+          }
+        });
+      } catch (e) {
+        console.error(e);
+        alert('Camera access error: ' + e);
+      }
+    }
 
-            // Continuously scan the video feed
-            setInterval(() => {
-                if (videoElement.readyState === 4) {  // Ensure video has loaded
-                    codeReader.decodeFromVideoElement(videoElement)
-                        .then(result => {
-                            const scannedData = result.getText();
-                            const timestamp = new Date().toLocaleString();
-                            transactionHistory.push({ item: scannedData, details: result.getText(), timestamp });
+    function updateTable() {
+      const tbody = document.querySelector("#transactionHistory tbody");
+      tbody.innerHTML = "";
+      transactionHistory.forEach(entry => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${entry.item}</td><td>${entry.timestamp}</td>`;
+        tbody.appendChild(row);
+      });
+    }
 
-                            // Update the transaction history table
-                            updateTransactionHistory();
-                        })
-                        .catch(err => {
-                            // Handle decoding error
-                        });
-                }
-            }, 1000); // Scan every second
-        }
+    function exportCSV() {
+      let csv = "Item,Timestamp\n";
+      transactionHistory.forEach(entry => {
+        csv += `${entry.item},${entry.timestamp}\n`;
+      });
 
-        function updateTransactionHistory() {
-            const tableBody = document.getElementById('transactionHistory').getElementsByTagName('tbody')[0];
-            tableBody.innerHTML = ''; // Clear the existing table body
-
-            transactionHistory.forEach((transaction) => {
-                const row = tableBody.insertRow();
-                row.insertCell(0).textContent = transaction.item;
-                row.insertCell(1).textContent = transaction.details;
-                row.insertCell(2).textContent = transaction.timestamp;
-            });
-        }
-
-        function exportCSV() {
-            let csvContent = "Item,Details,Timestamp\n";
-            transactionHistory.forEach((transaction) => {
-                csvContent += `${transaction.item},${transaction.details},${transaction.timestamp}\n`;
-            });
-
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'transaction_history.csv';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-    </script>
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "transaction_history.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
 </body>
 </html>
