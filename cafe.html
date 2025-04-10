@@ -1,18 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Live QR/Barcode Scanner</title>
-  <script src="https://unpkg.com/@zxing/browser@latest"></script>
+  <title>iPhone Barcode/QR Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    #reader { width: 300px; margin-top: 10px; }
+    table { margin-top: 20px; border-collapse: collapse; }
+    th, td { border: 1px solid #000; padding: 5px 10px; }
+  </style>
 </head>
 <body>
-  <h1>QR/Barcode Scanner</h1>
-  <button onclick="startScanner()">Start Camera</button>
-  <video id="video" width="300" height="200" style="border:1px solid #333"></video>
+  <h1>Scan BARCODE / QR Code</h1>
+  <div id="reader"></div>
 
   <h2>Transaction History</h2>
-  <table border="1" id="transactionHistory">
+  <table id="transactionTable">
     <thead>
       <tr>
         <th>Item</th>
@@ -21,50 +23,23 @@
     </thead>
     <tbody></tbody>
   </table>
+
   <button onclick="exportCSV()">Export to CSV</button>
 
   <script>
-    const { BrowserMultiFormatReader } = ZXingBrowser;
-    const codeReader = new BrowserMultiFormatReader();
     const transactionHistory = [];
 
-    async function startScanner() {
-      const videoElement = document.getElementById('video');
-
-      try {
-        const devices = await ZXingBrowser.BrowserCodeReader.listVideoInputDevices();
-        if (devices.length === 0) {
-          alert('No camera found');
-          return;
-        }
-
-        const selectedDeviceId = devices[0].deviceId;
-
-        codeReader.decodeFromVideoDevice(selectedDeviceId, videoElement, (result, err, controls) => {
-          if (result) {
-            const text = result.getText();
-            const timestamp = new Date().toLocaleString();
-
-            // Prevent duplicates in rapid succession
-            const lastEntry = transactionHistory[transactionHistory.length - 1];
-            if (!lastEntry || lastEntry.item !== text) {
-              transactionHistory.push({ item: text, timestamp });
-              updateTable();
-            }
-          }
-
-          if (err && !(err instanceof ZXingBrowser.NotFoundException)) {
-            console.error(err);
-          }
-        });
-      } catch (e) {
-        console.error(e);
-        alert('Camera access error: ' + e);
+    function addToHistory(text) {
+      const timestamp = new Date().toLocaleString();
+      const last = transactionHistory[transactionHistory.length - 1];
+      if (!last || last.item !== text) {
+        transactionHistory.push({ item: text, timestamp });
+        updateTable();
       }
     }
 
     function updateTable() {
-      const tbody = document.querySelector("#transactionHistory tbody");
+      const tbody = document.querySelector("#transactionTable tbody");
       tbody.innerHTML = "";
       transactionHistory.forEach(entry => {
         const row = document.createElement("tr");
@@ -87,6 +62,32 @@
       a.click();
       URL.revokeObjectURL(url);
     }
+
+    // Start the scanner
+    const html5QrCode = new Html5Qrcode("reader");
+
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length) {
+        const cameraId = devices[0].id;
+        html5QrCode.start(
+          cameraId,
+          {
+            fps: 10,
+            qrbox: 250
+          },
+          (decodedText, decodedResult) => {
+            addToHistory(decodedText);
+          },
+          errorMessage => {
+            // Optional: show scan errors
+          }
+        ).catch(err => {
+          alert("Camera error: " + err);
+        });
+      }
+    }).catch(err => {
+      alert("Unable to access camera: " + err);
+    });
   </script>
 </body>
 </html>
