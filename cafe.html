@@ -8,9 +8,9 @@
 </head>
 <body>
     <button onclick="openCamera()">Open Camera</button>
-    <input type="file" id="cameraInput" accept="image/*" style="display:none" capture="camera">
+    <video id="video" width="300" height="200" style="border: 1px solid black"></video>
 
-    <h2>Transaction History</h2>
+    <h2>TRANSACTION HISTORY</h2>
     <table id="transactionHistory" border="1">
         <thead>
             <tr>
@@ -29,39 +29,38 @@
         const transactionHistory = [];
         const codeReader = new ZXing.BrowserMultiFormatReader();
 
-        function openCamera() {
-            document.getElementById('cameraInput').click();
-        }
+        async function openCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                document.getElementById('video').srcObject = stream;
 
-        document.getElementById('cameraInput').addEventListener('change', handleImageUpload);
-
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function() {
-                    const img = new Image();
-                    img.src = reader.result;
-                    img.onload = function() {
-                        scanBarcode(img);
-                    };
-                };
-                reader.readAsDataURL(file);
+                // Start scanning
+                startScanning(stream);
+            } catch (err) {
+                alert("Error accessing camera: " + err);
             }
         }
 
-        function scanBarcode(img) {
-            codeReader.decodeFromImage(img).then(result => {
-                const scannedData = result.getText();
-                const timestamp = new Date().toLocaleString();
-                transactionHistory.push({ item: scannedData, details: result.getText(), timestamp });
+        function startScanning(stream) {
+            const videoElement = document.getElementById('video');
 
-                // Update the transaction history table
-                updateTransactionHistory();
+            // Continuously scan the video feed
+            setInterval(() => {
+                if (videoElement.readyState === 4) {  // Ensure video has loaded
+                    codeReader.decodeFromVideoElement(videoElement)
+                        .then(result => {
+                            const scannedData = result.getText();
+                            const timestamp = new Date().toLocaleString();
+                            transactionHistory.push({ item: scannedData, details: result.getText(), timestamp });
 
-            }).catch(err => {
-                alert("Error scanning barcode/QR code: " + err);
-            });
+                            // Update the transaction history table
+                            updateTransactionHistory();
+                        })
+                        .catch(err => {
+                            // Handle decoding error
+                        });
+                }
+            }, 1000); // Scan every second
         }
 
         function updateTransactionHistory() {
