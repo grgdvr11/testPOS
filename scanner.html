@@ -277,13 +277,18 @@
     };
 
   // Reset today's scans
-  document.getElementById("reset-btn").onclick = () => {
+document.getElementById("reset-btn").onclick = () => {
+  const confirmReset = confirm("Are you sure you want to reset today's scan count?");
+  if (confirmReset) {
     const today = new Date().toLocaleDateString();
     scanLog = scanLog.filter(entry => entry.date !== today);
     saveLogs();
     updateTableUI();
     showNotification("🔄 Daily scan count reset");
-  };
+  } else {
+    showNotification("❌ Reset canceled");
+  }
+};
 
   // Logout
   document.getElementById("logout-btn").onclick = () => {
