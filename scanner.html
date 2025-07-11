@@ -1,113 +1,162 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR/Barcode Scanner</title>
-  https://unpkg.com/html5-qrcode
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f4f4f4;
-    }
-    #reader {
-      width: 100%;
-      max-width: 400px;
-      margin: auto;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background: #eee;
-    }
-    #count {
-      font-weight: bold;
-      margin-top: 10px;
-    }
-    button {
-      font-size: 16px;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QR/Barcode Scanner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #f4f4f4;
+      display: flex; flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      background: #007BFF;
+      color: white;
+      padding: 15px;
+      width: 100%;
+      text-align: center;
+    }
+
+    #scanner-container {
+      margin-top: 20px;
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    #scan-count {
+      margin-top: 10px;
+      font-size: 18px;
+    }
+
+    table {
+      margin-top: 20px;
+      width: 90%;
+      max-width: 700px;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #007BFF;
+      color: white;
+    }
+
+    #download-btn {
+      margin: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background: green;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #download-btn:hover {
+      background: darkgreen;
+    }
+  </style>
 </head>
 <body>
+  <h1>QR / Barcode Scanner</h1>
+  <div id="scanner-container">
+    <video id="preview"></video>
+  </div>
+  <div id="scan-count">Scans: <span id="counter">0</span></div>
+  <button id="download-btn">Download CSV</button>
 
-  <h2>QR/Barcode Scanner</h2>
-  <div id="reader"></div>
-  <p id="count">Total Scanned: 0</p>
-  <button onclick="downloadCSV()">Download CSV</button>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Order ID</th>
+        <th>Date</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody id="log-table"></tbody>
+  </table>
 
-  <table id="scanTable">
-    <thead>
-      <tr>
-        <th>Code</th>
-        <th>Date</th>
-        <th>Time</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <audio id="beep" src="https://www.soundjay.com/buttons/beep-07.wav" preload="auto"></audio>
 
-  <audio id="beep" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg scannedData = new Set();
-    const tableBody = document.querySelector("#scanTable tbody");
-    const countDisplay = document.getElementById("count");
-    const beep = document.getElementById("beep");
-    const html5QrCode = new Html5Qrcode("reader");
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script>
+    const scanner = new Html5Qrcode("preview");
+    const scanLog = [];
+    let scanCounter = 0;
 
-    function updateTable(code) {
-      const now = new Date();
-      const date = now.toLocaleDateString();
-      const time = now.toLocaleTimeString();
+    function updateTable(data) {
+      scanCounter++;
+      document.getElementById("counter").innerText = scanCounter;
 
-      const row = document.createElement("tr");
-      row.innerHTML = `<td>${code}</td><td>${date}</td><td>${time}</td>`;
-      tableBody.appendChild(row);
+      const now = new Date();
+      const date = now.toLocaleDateString();
+      const time = now.toLocaleTimeString();
 
-      countDisplay.textContent = `Total Scanned: ${scannedData.size}`;
-    }
+      scanLog.push({id: data, date, time});
 
-    function downloadCSV() {
-      let csv = "Code,Date,Time\n";
-      document.querySelectorAll("#scanTable tbody tr").forEach(row => {
-        const cols = row.querySelectorAll("td");
-        csv += `${cols[0].textContent},${cols[1].textContent},${cols[2].textContent}\n`;
-      });
+      const table = document.getElementById("log-table");
+      const row = table.insertRow();
+      row.insertCell(0).innerText = scanCounter;
+      row.insertCell(1).innerText = data;
+      row.insertCell(2).innerText = date;
+      row.insertCell(3).innerText = time;
+    }
 
-      const blob = new Blob([csv], { type: "text/csv" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "scanned_codes.csv";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+    function downloadCSV() {
+      let csv = "No.,Order ID,Date,Time\n";
+      scanLog.forEach((item, index) => {
+        csv += `${index + 1},${item.id},${item.date},${item.time}\n`;
+      });
 
-    function onScanSuccess(decodedText, decodedResult) {
-      if (!scannedData.has(decodedText)) {
-        scannedData.add(decodedText);
-        beep.play();
-        updateTable(decodedText);
-      }
-    }
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "scan_log.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
 
-    // Start scanner with back camera
-    html5QrCode.start(
-      { facingMode: { exact: "environment" } },
-      { fps: 10, qrbox: 250 },
-      onScanSuccess
-    ).catch(err => {
-      console.error("Camera start error:", err);
-      alert("Unable to access the back camera. Please check permissions or try a different device.");
-    });
-  </script>
+    document.getElementById("download-btn").addEventListener("click", downloadCSV);
+
+    const beepSound = document.getElementById("beep");
+
+    const config = { fps: 10, qrbox: 250, facingMode: "environment" };
+
+    scanner.start(
+      { facingMode: "environment" },
+      config,
+      (decodedText, decodedResult) => {
+        if (!scanLog.find(entry => entry.id === decodedText)) {
+          beepSound.play();
+          updateTable(decodedText);
+        }
+      },
+      errorMessage => {
+        // Ignored on purpose (we can show in UI if needed)
+      }
+    ).catch(err => {
+      console.error("Error starting scanner:", err);
+    });
+  </script>
 </body>
 </html>
