@@ -26,12 +26,30 @@
       width: 100%;
       max-width: 500px;
       position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     #preview {
       width: 100%;
+      display: none;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    #start-btn {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #start-btn:hover {
+      background: #218838;
     }
 
     #scan-count {
@@ -76,9 +94,12 @@
 </head>
 <body>
   <h1>QR / Barcode Scanner</h1>
+
   <div id="scanner-container">
+    <button id="start-btn">Start Scanning</button>
     <div id="preview"></div>
   </div>
+
   <div id="scan-count">Scans: <span id="counter">0</span></div>
   <button id="download-btn">Download CSV</button>
 
@@ -139,36 +160,46 @@
 
     document.getElementById("download-btn").addEventListener("click", downloadCSV);
 
-    // Get available cameras and start with back one if possible
-    Html5Qrcode.getCameras().then(devices => {
-      if (devices && devices.length) {
-        const backCam = devices.find(device => /back|rear/i.test(device.label)) || devices[0];
+    document.getElementById("start-btn").addEventListener("click", () => {
+      document.getElementById("start-btn").style.display = "none";
+      document.getElementById("preview").style.display = "block";
 
-        scanner.start(
-          backCam.id,
-          {
-            fps: 10,
-            qrbox: 250,
-            aspectRatio: 1.777
-          },
-          (decodedText, decodedResult) => {
-            if (!scanLog.find(entry => entry.id === decodedText)) {
-              beepSound.play();
-              updateTable(decodedText);
+      Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+          const backCam = devices.find(device => /back|rear/i.test(device.label)) || devices[0];
+
+          scanner.start(
+            backCam.id,
+            {
+              fps: 10,
+              qrbox: 250,
+              aspectRatio: 1.777
+            },
+            (decodedText, decodedResult) => {
+              if (!scanLog.find(entry => entry.id === decodedText)) {
+                try {
+                  beepSound.currentTime = 0;
+                  beepSound.play().catch(e => console.warn("Audio play blocked:", e));
+                } catch (e) {
+                  console.warn("Beep play error:", e);
+                }
+                updateTable(decodedText);
+              }
+            },
+            errorMessage => {
+              // Scan errors (ignored)
             }
-          },
-          errorMessage => {
-            // Can log errors if needed
-          }
-        ).catch(err => {
-          console.error("Error starting scanner:", err);
-        });
-      } else {
-        alert("No camera found on this device.");
-      }
-    }).catch(err => {
-      console.error("Camera access error:", err);
-      alert("Could not access camera. Please check permissions and try again.");
+          ).catch(err => {
+            console.error("Error starting scanner:", err);
+            alert("Camera failed to start. Check permissions.");
+          });
+        } else {
+          alert("No camera found on this device.");
+        }
+      }).catch(err => {
+        console.error("Camera access error:", err);
+        alert("Could not access camera. Please check permissions and try again.");
+      });
     });
   </script>
 </body>
