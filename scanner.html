@@ -28,7 +28,7 @@
       position: relative;
     }
 
-    video {
+    #preview {
       width: 100%;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
@@ -77,7 +77,7 @@
 <body>
   <h1>QR / Barcode Scanner</h1>
   <div id="scanner-container">
-    <video id="preview"></video>
+    <div id="preview"></div>
   </div>
   <div id="scan-count">Scans: <span id="counter">0</span></div>
   <button id="download-btn">Download CSV</button>
@@ -101,6 +101,7 @@
     const scanner = new Html5Qrcode("preview");
     const scanLog = [];
     let scanCounter = 0;
+    const beepSound = document.getElementById("beep");
 
     function updateTable(data) {
       scanCounter++;
@@ -138,24 +139,36 @@
 
     document.getElementById("download-btn").addEventListener("click", downloadCSV);
 
-    const beepSound = document.getElementById("beep");
+    // Get available cameras and start with back one if possible
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length) {
+        const backCam = devices.find(device => /back|rear/i.test(device.label)) || devices[0];
 
-    const config = { fps: 10, qrbox: 250, facingMode: "environment" };
-
-    scanner.start(
-      { facingMode: "environment" },
-      config,
-      (decodedText, decodedResult) => {
-        if (!scanLog.find(entry => entry.id === decodedText)) {
-          beepSound.play();
-          updateTable(decodedText);
-        }
-      },
-      errorMessage => {
-        // Ignored on purpose (we can show in UI if needed)
+        scanner.start(
+          backCam.id,
+          {
+            fps: 10,
+            qrbox: 250,
+            aspectRatio: 1.777
+          },
+          (decodedText, decodedResult) => {
+            if (!scanLog.find(entry => entry.id === decodedText)) {
+              beepSound.play();
+              updateTable(decodedText);
+            }
+          },
+          errorMessage => {
+            // Can log errors if needed
+          }
+        ).catch(err => {
+          console.error("Error starting scanner:", err);
+        });
+      } else {
+        alert("No camera found on this device.");
       }
-    ).catch(err => {
-      console.error("Error starting scanner:", err);
+    }).catch(err => {
+      console.error("Camera access error:", err);
+      alert("Could not access camera. Please check permissions and try again.");
     });
   </script>
 </body>
