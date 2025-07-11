@@ -15,14 +15,16 @@
       min-height: 100vh;
       flex-direction: column;
     }
-    #login-container, #scanner-app {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 500px;
-    }
+    
+   #login-container {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  width: 90%;
+  max-width: 350px; /* ✅ Slightly narrower on mobile */
+  text-align: center;
+}
     #scanner-app { display: none; }
     h1, h2 { text-align: center; }
     input, button {
@@ -83,6 +85,17 @@
       font-weight: bold;
       font-size: 1.5em;
     }
+
+input[type="text"], input[type="password"], button {
+  width: 100%;
+  max-width: 300px; /* ✅ Limit width */
+  padding: 10px;
+  margin: 8px auto;
+  font-size: 16px;
+  display: block; /* ✅ Center on small screens */
+}
+
+    
   </style>
 </head>
 <body>
