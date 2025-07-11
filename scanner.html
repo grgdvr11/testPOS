@@ -3,29 +3,75 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QR/Barcode Scanner</title>
+  <title>Login to QR/Barcode Scanner</title>
   <style>
     body {
-      font-family: 'Source Sans Pro', sans-serif;
-      margin: 0; padding: 0;
+      font-family: Arial, sans-serif;
+      margin: 0;
       background: #f4f4f4;
-      display: flex; flex-direction: column;
+      display: flex;
+      justify-content: center;
       align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    /* Login Container */
+    #login-container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    #login-container h2 {
+      margin-bottom: 20px;
+    }
+
+    #login-container input {
+      width: 90%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+
+    #login-container button {
+      padding: 12px 20px;
+      background: #007BFF;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      width: 100%;
+    }
+
+    #login-container button:hover {
+      background: #0056b3;
+    }
+
+    /* Scanner UI (hidden by default) */
+    #scanner-app {
+      display: none;
+      width: 100%;
     }
 
     h1 {
       background: #007BFF;
       color: white;
       padding: 15px;
-      width: 100%;
       text-align: center;
+      margin: 0;
     }
 
     #scanner-container {
       margin-top: 20px;
       width: 100%;
       max-width: 500px;
-      position: relative;
+      margin-inline: auto;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -38,7 +84,7 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
 
-    #start-btn {
+    #start-btn, #download-btn {
       padding: 10px 20px;
       font-size: 16px;
       background: #28a745;
@@ -46,14 +92,14 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      margin: 10px;
     }
 
-    #start-btn:hover {
+    #start-btn:hover, #download-btn:hover {
       background: #218838;
     }
 
     #scan-count {
-      margin-top: 10px;
       font-size: 18px;
     }
 
@@ -63,6 +109,7 @@
       max-width: 700px;
       border-collapse: collapse;
       background: white;
+      margin-inline: auto;
     }
 
     th, td {
@@ -76,79 +123,87 @@
       color: white;
     }
 
-    #download-btn {
-      margin: 15px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background: green;
+    /* Notification */
+    #notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #28a745;
       color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+      padding: 20px 30px;
+      font-size: 24px;
+      border-radius: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    #download-btn:hover {
-      background: darkgreen;
-    }
-
-    /* ✅ Notification styling */
-#notification {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #28a745;
-  color: white;
-  padding: 20px 30px;
-  font-size: 24px;
-  border-radius: 12px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  z-index: 9999;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-#notification.show {
-  opacity: 1;
-}
-      pointer-events: auto;
+    #notification.show {
+      opacity: 1;
     }
   </style>
 </head>
 <body>
-  <h1>KELSEYS Item Scanner</h1>
-
-  <div id="scanner-container">
-    <button id="start-btn">Start Scanning</button>
-    <div id="preview"></div>
+  <!-- Login Page -->
+  <div id="login-container">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="handleLogin()">Login</button>
+    <p id="login-error" style="color: red; display: none; margin-top: 10px;">Invalid credentials</p>
   </div>
 
-  <div id="scan-count">Scans: <span id="counter">0</span></div>
-  <button id="download-btn">Download CSV</button>
+  <!-- Scanner Page (initially hidden) -->
+  <div id="scanner-app">
+    <h1>Kelseys Item Scanner</h1>
+    <div id="scanner-container">
+      <button id="start-btn">Start Scanning</button>
+      <div id="preview"></div>
+    </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Order ID</th>
-        <th>Date</th>
-        <th>Time</th>
-      </tr>
-    </thead>
-    <tbody id="log-table"></tbody>
-  </table>
+    <div id="scan-count">Scans: <span id="counter">0</span></div>
+    <button id="download-btn">Download CSV</button>
 
-  <!-- ✅ Visual notification -->
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Order ID</th>
+          <th>Date</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody id="log-table"></tbody>
+    </table>
+  </div>
+
+  <!-- Notification -->
   <div id="notification">✅ Scan completed</div>
 
-  <!-- Optional beep (won't be used if not working) -->
   <audio id="beep" preload="auto">
     <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQgAAAABAAgAZmZmZmZmZmZmZmZmZmZmZg==" type="audio/wav">
   </audio>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
+    // Basic login logic
+    function handleLogin() {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+      const error = document.getElementById("login-error");
+
+      // Example credentials: admin / 1234
+      if (user === "kelseys" && pass === "0011") {
+        document.getElementById("login-container").style.display = "none";
+        document.getElementById("scanner-app").style.display = "block";
+      } else {
+        error.style.display = "block";
+      }
+    }
+
     const scanner = new Html5Qrcode("preview");
     const scanLog = [];
     let scanCounter = 0;
@@ -214,7 +269,7 @@
               qrbox: 250,
               aspectRatio: 1.777
             },
-            (decodedText, decodedResult) => {
+            (decodedText) => {
               if (!scanLog.find(entry => entry.id === decodedText)) {
                 try {
                   beepSound.currentTime = 0;
@@ -225,18 +280,18 @@
               }
             },
             errorMessage => {
-              // Decode errors (ignored silently)
+              // Ignore decode errors
             }
           ).catch(err => {
-            console.error("Error starting scanner:", err);
+            console.error("Scanner start error:", err);
             alert("Camera failed to start. Check permissions.");
           });
         } else {
-          alert("No camera found on this device.");
+          alert("No camera found.");
         }
       }).catch(err => {
-        console.error("Camera access error:", err);
-        alert("Could not access camera. Please check permissions and try again.");
+        alert("Camera access error.");
+        console.error(err);
       });
     });
   </script>
