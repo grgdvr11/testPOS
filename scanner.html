@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,12 +57,11 @@
     <tbody></tbody>
   </table>
 
-  <audio id="beep" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="autonew Set();
+  <audio id="beep" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg scannedData = new Set();
     const tableBody = document.querySelector("#scanTable tbody");
     const countDisplay = document.getElementById("count");
     const beep = document.getElementById("beep");
     const html5QrCode = new Html5Qrcode("reader");
-    let currentCameraId = null;
 
     function updateTable(code) {
       const now = new Date();
@@ -99,27 +99,14 @@
       }
     }
 
-    function startScanner(cameraId) {
-      if (currentCameraId) {
-        html5QrCode.stop().then(() => {
-          html5QrCode.clear();
-          html5QrCode.start(cameraId, { fps: 10, qrbox: 250 }, onScanSuccess);
-        });
-      } else {
-        html5QrCode.start(cameraId, { fps: 10, qrbox: 250 }, onScanSuccess);
-      }
-      currentCameraId = cameraId;
-    }
-
-    Html5Qrcode.getCameras().then(devices => {
-      if (devices.length === 0) {
-        alert("No cameras found.");
-        return;
-      }
-
-      const backCam = devices.find(d => d.label.toLowerCase().includes("back"));
-      const defaultCamId = backCam ? backCam.id : devices[0].id;
-      startScanner(defaultCamId);
+    // Start scanner with back camera
+    html5QrCode.start(
+      { facingMode: { exact: "environment" } },
+      { fps: 10, qrbox: 250 },
+      onScanSuccess
+    ).catch(err => {
+      console.error("Camera start error:", err);
+      alert("Unable to access the back camera. Please check permissions or try a different device.");
     });
   </script>
 </body>
