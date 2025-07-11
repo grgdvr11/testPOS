@@ -115,9 +115,10 @@
     <tbody id="log-table"></tbody>
   </table>
 
-<audio id="beep" preload="auto">
-  <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQgAAAABAAgAZmZmZmZmZmZmZmZmZmZmZg==" type="audio/wav">
-</audio>
+  <!-- Embedded base64 beep sound (short beep) -->
+  <audio id="beep" preload="auto">
+    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQgAAAABAAgAZmZmZmZmZmZmZmZmZmZmZg==" type="audio/wav">
+  </audio>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script>
@@ -189,7 +190,7 @@
               }
             },
             errorMessage => {
-              // Scan errors (ignored)
+              // Ignore continuous decode errors
             }
           ).catch(err => {
             console.error("Error starting scanner:", err);
