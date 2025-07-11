@@ -3,297 +3,160 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login to QR/Barcode Scanner</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #f4f4f4;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      flex-direction: column;
-    }
-
-    /* Login Container */
-    #login-container {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-    }
-
-    #login-container h2 {
-      margin-bottom: 20px;
-    }
-
-    #login-container input {
-      width: 90%;
-      padding: 12px;
-      margin: 10px 0;
-      font-size: 16px;
-    }
-
-    #login-container button {
-      padding: 12px 20px;
-      background: #007BFF;
-      color: white;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 5px;
-      width: 100%;
-    }
-
-    #login-container button:hover {
-      background: #0056b3;
-    }
-
-    /* Scanner UI (hidden by default) */
-    #scanner-app {
-      display: none;
-      width: 100%;
-    }
-
-    h1 {
-      background: #007BFF;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      margin: 0;
-    }
-
-    #scanner-container {
-      margin-top: 20px;
-      width: 100%;
-      max-width: 500px;
-      margin-inline: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    #preview {
-      width: 100%;
-      display: none;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    }
-
-    #start-btn, #download-btn {
-      padding: 10px 20px;
-      font-size: 16px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 10px;
-    }
-
-    #start-btn:hover, #download-btn:hover {
-      background: #218838;
-    }
-
-    #scan-count {
-      font-size: 18px;
-    }
-
-    table {
-      margin-top: 20px;
-      width: 90%;
-      max-width: 700px;
-      border-collapse: collapse;
-      background: white;
-      margin-inline: auto;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-
-    th {
-      background: #007BFF;
-      color: white;
-    }
-
-    /* Notification */
-    #notification {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #28a745;
-      color: white;
-      padding: 20px 30px;
-      font-size: 24px;
-      border-radius: 12px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-      z-index: 9999;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-
-    #notification.show {
-      opacity: 1;
-    }
+  <title>Scanner with Login & Persistence</title>
+  <style>/* (CSS unchanged from earlier except added filter controls) */
+    body { font-family: Arial; background:#f4f4f4; margin:0; padding:0; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+    #login-container, #scanner-app { background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); width:90%; max-width:500px; }
+    #scanner-app { display:none; }
+    h2, h1 { margin-top:0; text-align:center; }
+    input, button, select { width:100%; padding:10px; margin:8px 0; font-size:16px; }
+    button { cursor:pointer; background:#007BFF; color:white; border:none; border-radius:5px; }
+    button:hover { background:#0056b3; }
+    #notification { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#28a745; color:white; padding:20px 30px; font-size:24px; border-radius:12px; opacity:0; pointer-events:none; transition:opacity .3s; z-index:9999; box-shadow:0 4px 12px rgba(0,0,0,0.3);}
+    #notification.show { opacity:1; }
+    table { width:100%; border-collapse:collapse; margin-top:15px; }
+    th,td { padding:8px; border:1px solid #ccc; text-align:center; }
+    th { background:#007BFF; color:white; }
+    #filter-container { margin:15px 0; display:flex; gap:10px; flex-wrap:wrap; }
+    #filter-container input, #filter-container button { width:auto; flex:1; }
   </style>
 </head>
 <body>
-  <!-- Login Page -->
-  <div id="login-container">
-    <h2>Login</h2>
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
-    <button onclick="handleLogin()">Login</button>
-    <p id="login-error" style="color: red; display: none; margin-top: 10px;">Invalid credentials</p>
+
+<div id="login-container">
+  <h2>Login</h2>
+  <input type="text" id="username" placeholder="Username" />
+  <input type="password" id="password" placeholder="Password" />
+  <button onclick="handleLogin()">Login</button>
+  <p id="login-error" style="color:red;display:none;">Invalid credentials</p>
+</div>
+
+<div id="scanner-app">
+  <h1>QR / Barcode Scanner</h1>
+  <div id="scanner-controls">
+    <button id="start-btn">Start Scanning</button>
   </div>
-
-  <!-- Scanner Page (initially hidden) -->
-  <div id="scanner-app">
-    <h1>Kelseys Item Scanner</h1>
-    <div id="scanner-container">
-      <button id="start-btn">Start Scanning</button>
-      <div id="preview"></div>
-    </div>
-
-    <div id="scan-count">Scans: <span id="counter">0</span></div>
-    <button id="download-btn">Download CSV</button>
-
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Order ID</th>
-          <th>Date</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody id="log-table"></tbody>
-    </table>
+  <div id="preview" style="display:none;"></div>
+  <div id="scan-count">Scans Today: <span id="counter">0</span></div>
+  
+  <div id="filter-container">
+    <label>From <input type="date" id="filter-start" /></label>
+    <label>To <input type="date" id="filter-end" /></label>
+    <button id="export-filtered">Export Filtered CSV</button>
   </div>
+  
+  <button id="download-btn">Download Full CSV</button>
+  
+  <table>
+    <thead><tr><th>#</th><th>Order ID</th><th>Date</th><th>Time</th></tr></thead>
+    <tbody id="log-table"></tbody>
+  </table>
+</div>
 
-  <!-- Notification -->
-  <div id="notification">✅ Scan completed</div>
+<div id="notification">✅ Scan completed</div>
+<audio id="beep" preload="auto">
+  <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQgAAAABAAgAZmZmZmZmZmZmZmZmZmZmZg==" type="audio/wav">
+</audio>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
-  <audio id="beep" preload="auto">
-    <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQgAAAABAAgAZmZmZmZmZmZmZmZmZmZmZg==" type="audio/wav">
-  </audio>
+<script>
+  const TOKEN_KEY = "scan_app_token";
+  const LOG_KEY = "scan_app_log";
+  const SESSION_DURATION = 3600 * 1000; // 1 hour
 
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <script>
-    // Basic login logic
-    function handleLogin() {
-      const user = document.getElementById("username").value;
-      const pass = document.getElementById("password").value;
-      const error = document.getElementById("login-error");
-
-      // Example credentials: admin / 1234
-      if (user === "kelseys" && pass === "0011") {
-        document.getElementById("login-container").style.display = "none";
-        document.getElementById("scanner-app").style.display = "block";
-      } else {
-        error.style.display = "block";
-      }
+  // login logic
+  function handleLogin(){
+    const u = document.getElementById("username").value;
+    const p = document.getElementById("password").value;
+    if(u==="kelseys" && p==="0011"){
+      const token = { ts: Date.now() };
+      localStorage.setItem(TOKEN_KEY, JSON.stringify(token));
+      showScannerApp();
+    } else {
+      document.getElementById("login-error").style.display = "block";
     }
+  }
+  function checkSession(){
+    const tok = JSON.parse(localStorage.getItem(TOKEN_KEY));
+    if(tok && (Date.now() - tok.ts) < SESSION_DURATION){
+      showScannerApp();
+    } else localStorage.removeItem(TOKEN_KEY);
+  }
+  function showScannerApp(){
+    document.getElementById("login-container").style.display="none";
+    document.getElementById("scanner-app").style.display="block";
+    loadLogs(); updateTableUI();
+  }
+  checkSession();
 
-    const scanner = new Html5Qrcode("preview");
-    const scanLog = [];
-    let scanCounter = 0;
-    const beepSound = document.getElementById("beep");
-    const notification = document.getElementById("notification");
+  // load and maintain logs
+  let scanLog = JSON.parse(localStorage.getItem(LOG_KEY)) || [];
+  const scanner = new Html5Qrcode("preview");
+  const notification = document.getElementById("notification");
+  const beep = document.getElementById("beep");
 
-    function updateTable(data) {
-      scanCounter++;
-      document.getElementById("counter").innerText = scanCounter;
+  function saveLogs(){ localStorage.setItem(LOG_KEY, JSON.stringify(scanLog)); }
+  function showNotification(msg){
+    notification.textContent = msg;
+    notification.classList.add("show");
+    setTimeout(()=> notification.classList.remove("show"),2000);
+  }
 
-      const now = new Date();
-      const date = now.toLocaleDateString();
-      const time = now.toLocaleTimeString();
-
-      scanLog.push({id: data, date, time});
-
-      const table = document.getElementById("log-table");
-      const row = table.insertRow();
-      row.insertCell(0).innerText = scanCounter;
-      row.insertCell(1).innerText = data;
-      row.insertCell(2).innerText = date;
-      row.insertCell(3).innerText = time;
+  function updateTableUI(filterStart, filterEnd){
+    const tbody = document.getElementById("log-table");
+    tbody.innerHTML="";
+    let logs = scanLog;
+    if(filterStart && filterEnd){
+      logs = logs.filter(e => e.date>=filterStart && e.date<=filterEnd);
     }
-
-    function showNotification(message) {
-      notification.textContent = message;
-      notification.classList.add("show");
-      setTimeout(() => {
-        notification.classList.remove("show");
-      }, 2000);
-    }
-
-    function downloadCSV() {
-      let csv = "No.,Order ID,Date,Time\n";
-      scanLog.forEach((item, index) => {
-        csv += `${index + 1},${item.id},${item.date},${item.time}\n`;
-      });
-
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", "scan_log.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    document.getElementById("download-btn").addEventListener("click", downloadCSV);
-
-    document.getElementById("start-btn").addEventListener("click", () => {
-      document.getElementById("start-btn").style.display = "none";
-      document.getElementById("preview").style.display = "block";
-
-      Html5Qrcode.getCameras().then(devices => {
-        if (devices && devices.length) {
-          const backCam = devices.find(device => /back|rear/i.test(device.label)) || devices[0];
-
-          scanner.start(
-            backCam.id,
-            {
-              fps: 10,
-              qrbox: 250,
-              aspectRatio: 1.777
-            },
-            (decodedText) => {
-              if (!scanLog.find(entry => entry.id === decodedText)) {
-                try {
-                  beepSound.currentTime = 0;
-                  beepSound.play().catch(() => {});
-                } catch (e) {}
-                updateTable(decodedText);
-                showNotification("✅ Scan completed");
-              }
-            },
-            errorMessage => {
-              // Ignore decode errors
-            }
-          ).catch(err => {
-            console.error("Scanner start error:", err);
-            alert("Camera failed to start. Check permissions.");
-          });
-        } else {
-          alert("No camera found.");
-        }
-      }).catch(err => {
-        alert("Camera access error.");
-        console.error(err);
-      });
+    logs.forEach((e,i)=> {
+      const r=tbody.insertRow();
+      r.insertCell(0).innerText=i+1;
+      r.insertCell(1).innerText=e.id;
+      r.insertCell(2).innerText=e.date;
+      r.insertCell(3).innerText=e.time;
     });
-  </script>
+    document.getElementById("counter").innerText = scanLog.filter(e => e.date === new Date().toLocaleDateString()).length;
+  }
+
+  document.getElementById("start-btn").addEventListener("click", ()=>{
+    document.getElementById("start-btn").style.display="none";
+    document.getElementById("preview").style.display="block";
+    Html5Qrcode.getCameras().then(devices=>{
+      const back = devices.find(d => /back|rear/i.test(d.label))||devices[0];
+      scanner.start(back.id,{fps:10,qrbox:250},(decoded)=>{
+        if(!scanLog.find(x=>x.id===decoded && x.date===new Date().toLocaleDateString())){
+          const now=new Date(), date=now.toLocaleDateString(), time=now.toLocaleTimeString();
+          scanLog.push({id:decoded, date, time});
+          beep.currentTime=0; beep.play().catch(()=>{});
+          showNotification("✅ Scan completed");
+          saveLogs();
+          updateTableUI();
+        }
+      }, ()=>{}).catch(()=> alert("Camera access error"));
+    });
+  });
+
+  // CSV download functions
+  function exportCSV(logs){
+    let csv="No.,Order ID,Date,Time\n";
+    logs.forEach((e,i)=> csv+=`${i+1},${e.id},${e.date},${e.time}\n`);
+    const blob=new Blob([csv],{type:"text/csv"}), a=document.createElement("a");
+    a.href=URL.createObjectURL(blob); a.download="scans.csv";
+    document.body.appendChild(a);a.click();a.remove();
+  }
+  document.getElementById("download-btn").onclick=()=> exportCSV(scanLog);
+  document.getElementById("export-filtered").onclick = ()=>{
+    const s=document.getElementById("filter-start").value;
+    const e=document.getElementById("filter-end").value;
+    if(!s||!e || s>e){ alert("Enter valid dates"); return; }
+    const logs=scanLog.filter(x=> x.date>=s && x.date<=e);
+    updateTableUI(s,e);
+    exportCSV(logs);
+  };
+  document.getElementById("filter-start").onchange = document.getElementById("filter-end").onchange = ()=>{
+    updateTableUI(document.getElementById("filter-start").value, document.getElementById("filter-end").value);
+  };
+</script>
 </body>
 </html>
