@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +16,10 @@
       max-width: 400px;
       margin: auto;
     }
-    collapse;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
     }
     th, td {
       border: 1px solid #ccc;
@@ -31,9 +33,8 @@
       font-weight: bold;
       margin-top: 10px;
     }
-    button {
-      margin-top: 10px;
-      padding: 10px;
+    button, select {
+      marginpx;
       font-size: 16px;
     }
   </style>
@@ -41,6 +42,8 @@
 <body>
 
   <h2>QR/Barcode Scanner</h2>
+  <label for="cameraSelect">Select Camera:</label>
+  <select id="cameraSelect"></select>
   <div id="reader"></div>
   <p id="count">Total Scanned: 0</p>
   <button onclick="downloadCSV()">Download CSV</button>
@@ -56,11 +59,14 @@
     <tbody></tbody>
   </table>
 
-  <audio id="beep" src="https://actions.google.com/sounds/v1/cartoon/clangript>
+  <audio id="beep" src="https://actions.google.com/sounds/v1/cartoon/clang_and>
     const scannedData = new Set();
     const tableBody = document.querySelector("#scanTable tbody");
     const countDisplay = document.getElementById("count");
     const beep = document.getElementById("beep");
+    const cameraSelect = document.getElementById("cameraSelect");
+    const html5QrCode = new Html5Qrcode("reader");
+    let currentCameraId = null;
 
     function updateTable(code) {
       const now = new Date();
@@ -98,21 +104,40 @@
       }
     }
 
-    const html5QrCode = new Html5Qrcode("reader");
-    Html5Qrcode.getCameras().then(devices => {
-      if (devices && devices.length) {
-        const backCamera = devices.find(device => device.label.toLowerCase().includes("back")) || devices[0];
-        html5QrCode.start(
-          backCamera.id,
-          {
-            fps: 10,
-            qrbox: 250
-          },
-          onScanSuccess
-        );
+    function startScanner(cameraId) {
+      if (currentCameraId) {
+        html5QrCode.stop().then(() => {
+          html5QrCode.clear();
+          html5QrCode.start(cameraId, { fps: 10, qrbox: 250 }, onScanSuccess);
+        });
+      } else {
+        html5QrCode.start(cameraId, { fps: 10, qrbox: 250 }, onScanSuccess);
       }
-    }).catch(err => {
-      alert("Camera access error: " + err);
+      currentCameraId = cameraId;
+    }
+
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices.length === 0) {
+        alert("No cameras found.");
+        return;
+      }
+
+      devices.forEach(device => {
+        const option = document.createElement("option");
+        option.value = device.id;
+        option.text = device.label || `Camera ${cameraSelect.length + 1}`;
+        cameraSelect.appendChild(option);
+      });
+
+      // Auto-select back camera if available
+      const backCam = devices.find(d => d.label.toLowerCase().includes("back"));
+      const defaultCamId = backCam ? backCam.id : devices[0].id;
+      cameraSelect.value = defaultCamId;
+      startScanner(defaultCamId);
+    });
+
+    cameraSelect.addEventListener("change", () => {
+      startScanner(cameraSelect.value);
     });
   </script>
 </body>
