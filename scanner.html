@@ -79,6 +79,10 @@
     #filter-container input, #filter-container button {
       flex: 1;
     }
+    #counter {
+      font-weight: bold;
+      font-size: 1.5em;
+    }
   </style>
 </head>
 <body>
@@ -97,9 +101,8 @@
     <button id="start-btn">Start Scanning</button>
   </div>
   <div id="preview" style="display: none;"></div>
-  <div id="scan-count">Scans Today: <span id="counter" style="font-weight: bold; font-size: 1.5em;">0</span></div>
+  <div id="scan-count">Scans Today: <span id="counter">0</span></div>
 
-  <!-- Reset and Logout buttons -->
   <div style="display: flex; gap: 10px; margin: 10px 0;">
     <button id="reset-btn" style="background-color: #dc3545;">Reset Count</button>
     <button id="logout-btn" style="background-color: #6c757d;">Logout</button>
@@ -122,9 +125,6 @@
 </div>
 
 <div id="notification">✅ Scan completed</div>
-<audio id="beep" preload="auto">
-  <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQgAAAABAAgAZmZmZmZmZmZmZmZmZmZmZg==" type="audio/wav">
-</audio>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script>
@@ -136,7 +136,6 @@
   let scanner = null;
   let startBtnAttached = false;
 
-  const beep = document.getElementById("beep");
   const notification = document.getElementById("notification");
 
   function handleLogin() {
@@ -188,8 +187,12 @@
               if (!scanLog.find(x => x.id === decoded && x.date === today)) {
                 const now = new Date();
                 scanLog.push({ id: decoded, date: now.toLocaleDateString(), time: now.toLocaleTimeString() });
-                beep.currentTime = 0;
-                beep.play().catch(() => {});
+
+                // ✅ Vibrate instead of beep
+                if (navigator.vibrate) {
+                  navigator.vibrate(200);
+                }
+
                 showNotification("✅ Scan completed");
                 saveLogs();
                 updateTableUI();
@@ -276,21 +279,21 @@
       );
     };
 
-  // Reset today's scans
-document.getElementById("reset-btn").onclick = () => {
-  const confirmReset = confirm("Are you sure you want to reset today's scan count?");
-  if (confirmReset) {
-    const today = new Date().toLocaleDateString();
-    scanLog = scanLog.filter(entry => entry.date !== today);
-    saveLogs();
-    updateTableUI();
-    showNotification("🔄 Daily scan count reset");
-  } else {
-    showNotification("❌ Reset canceled");
-  }
-};
+  // ✅ Reset today's scans with confirmation
+  document.getElementById("reset-btn").onclick = () => {
+    const confirmReset = confirm("Are you sure you want to reset today's scan count?");
+    if (confirmReset) {
+      const today = new Date().toLocaleDateString();
+      scanLog = scanLog.filter(entry => entry.date !== today);
+      saveLogs();
+      updateTableUI();
+      showNotification("🔄 Daily scan count reset");
+    } else {
+      showNotification("❌ Reset canceled");
+    }
+  };
 
-  // Logout
+  // ✅ Logout
   document.getElementById("logout-btn").onclick = () => {
     localStorage.removeItem(TOKEN_KEY);
     document.getElementById("scanner-app").style.display = "none";
