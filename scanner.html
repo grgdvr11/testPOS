@@ -99,6 +99,12 @@
   <div id="preview" style="display: none;"></div>
   <div id="scan-count">Scans Today: <span id="counter">0</span></div>
 
+  <!-- Reset and Logout buttons -->
+  <div style="display: flex; gap: 10px; margin: 10px 0;">
+    <button id="reset-btn" style="background-color: #dc3545;">Reset Count</button>
+    <button id="logout-btn" style="background-color: #6c757d;">Logout</button>
+  </div>
+
   <div id="filter-container">
     <label>From <input type="date" id="filter-start" /></label>
     <label>To <input type="date" id="filter-end" /></label>
@@ -269,6 +275,22 @@
         document.getElementById("filter-end").value
       );
     };
+
+  // Reset today's scans
+  document.getElementById("reset-btn").onclick = () => {
+    const today = new Date().toLocaleDateString();
+    scanLog = scanLog.filter(entry => entry.date !== today);
+    saveLogs();
+    updateTableUI();
+    showNotification("🔄 Daily scan count reset");
+  };
+
+  // Logout
+  document.getElementById("logout-btn").onclick = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    document.getElementById("scanner-app").style.display = "none";
+    document.getElementById("login-container").style.display = "block";
+  };
 
   checkSession();
 </script>
