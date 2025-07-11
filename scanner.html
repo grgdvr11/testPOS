@@ -33,8 +33,7 @@
       font-weight: bold;
       margin-top: 10px;
     }
-    button, select {
-      marginpx;
+    button {
       font-size: 16px;
     }
   </style>
@@ -42,8 +41,6 @@
 <body>
 
   <h2>QR/Barcode Scanner</h2>
-  <label for="cameraSelect">Select Camera:</label>
-  <select id="cameraSelect"></select>
   <div id="reader"></div>
   <p id="count">Total Scanned: 0</p>
   <button onclick="downloadCSV()">Download CSV</button>
@@ -59,12 +56,10 @@
     <tbody></tbody>
   </table>
 
-  <audio id="beep" src="https://actions.google.com/sounds/v1/cartoon/clang_and>
-    const scannedData = new Set();
+  <audio id="beep" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" preload="autonew Set();
     const tableBody = document.querySelector("#scanTable tbody");
     const countDisplay = document.getElementById("count");
     const beep = document.getElementById("beep");
-    const cameraSelect = document.getElementById("cameraSelect");
     const html5QrCode = new Html5Qrcode("reader");
     let currentCameraId = null;
 
@@ -122,22 +117,9 @@
         return;
       }
 
-      devices.forEach(device => {
-        const option = document.createElement("option");
-        option.value = device.id;
-        option.text = device.label || `Camera ${cameraSelect.length + 1}`;
-        cameraSelect.appendChild(option);
-      });
-
-      // Auto-select back camera if available
       const backCam = devices.find(d => d.label.toLowerCase().includes("back"));
       const defaultCamId = backCam ? backCam.id : devices[0].id;
-      cameraSelect.value = defaultCamId;
       startScanner(defaultCamId);
-    });
-
-    cameraSelect.addEventListener("change", () => {
-      startScanner(cameraSelect.value);
     });
   </script>
 </body>
