@@ -9,30 +9,43 @@
       font-family: Arial, sans-serif;
       background: #f4f4f4;
       margin: 0;
+      padding: 10px;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 100vh;
-      flex-direction: column;
     }
-    
-   #login-container {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
-  width: 90%;
-  max-width: 350px; /* ✅ Slightly narrower on mobile */
-  text-align: center;
-}
-    #scanner-app { display: none; }
-    h1, h2 { text-align: center; }
-    input, button {
+
+    #login-container,
+    #scanner-app {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
       width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      font-size: 16px;
+      max-width: 500px;
+      box-sizing: border-box;
     }
+
+    #scanner-app { display: none; }
+
+    h1, h2 {
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    button {
+      width: 100%;
+      max-width: 300px;
+      padding: 10px;
+      margin: 8px auto;
+      font-size: 16px;
+      display: block;
+      box-sizing: border-box;
+    }
+
     button {
       background: #007BFF;
       color: white;
@@ -40,7 +53,9 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
     button:hover { background: #0056b3; }
+
     #notification {
       position: fixed;
       top: 50%;
@@ -49,53 +64,85 @@
       background-color: #28a745;
       color: white;
       padding: 20px 30px;
-      font-size: 24px;
+      font-size: 20px;
       border-radius: 12px;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
       z-index: 9999;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-    #notification.show { opacity: 1; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    th, td {
-      padding: 8px;
-      border: 1px solid #ccc;
       text-align: center;
     }
-    th {
-      background: #007BFF;
-      color: white;
+
+    #notification.show { opacity: 1; }
+
+    #preview {
+      width: 100%;
+      max-width: 100%;
+      margin-top: 10px;
     }
-    #filter-container {
+
+    #scan-count {
+      text-align: center;
       margin: 15px 0;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
     }
-    #filter-container input, #filter-container button {
-      flex: 1;
-    }
+
     #counter {
       font-weight: bold;
       font-size: 1.5em;
     }
 
-input[type="text"], input[type="password"], button {
-  width: 100%;
-  max-width: 300px; /* ✅ Limit width */
-  padding: 10px;
-  margin: 8px auto;
-  font-size: 16px;
-  display: block; /* ✅ Center on small screens */
-}
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
 
-    
+    #filter-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    #filter-container label {
+      flex: 1 1 45%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    table {
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    th {
+      background: #007BFF;
+      color: white;
+    }
+
+    @media (max-width: 400px) {
+      table, thead, tbody, th, td, tr {
+        font-size: 12px;
+      }
+
+      #notification {
+        font-size: 16px;
+        padding: 15px 20px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -110,20 +157,23 @@ input[type="text"], input[type="password"], button {
 
 <div id="scanner-app">
   <h1>Kelseys Item Scanner</h1>
-  <div>
-    <button id="start-btn">Start Scanning</button>
-  </div>
+  <button id="start-btn">Start Scanning</button>
   <div id="preview" style="display: none;"></div>
+
   <div id="scan-count">Scans Today: <span id="counter">0</span></div>
 
-  <div style="display: flex; gap: 10px; margin: 10px 0;">
+  <div class="action-buttons">
     <button id="reset-btn" style="background-color: #dc3545;">Reset Count</button>
     <button id="logout-btn" style="background-color: #6c757d;">Logout</button>
   </div>
 
   <div id="filter-container">
-    <label>From <input type="date" id="filter-start" /></label>
-    <label>To <input type="date" id="filter-end" /></label>
+    <label>From
+      <input type="date" id="filter-start" />
+    </label>
+    <label>To
+      <input type="date" id="filter-end" />
+    </label>
     <button id="export-filtered">Export Filtered CSV</button>
   </div>
 
@@ -143,7 +193,7 @@ input[type="text"], input[type="password"], button {
 <script>
   const TOKEN_KEY = "scan_app_token";
   const LOG_KEY = "scan_app_log";
-  const SESSION_DURATION = 3600 * 1000; // 1 hour
+  const SESSION_DURATION = 3600 * 1000;
 
   let scanLog = JSON.parse(localStorage.getItem(LOG_KEY)) || [];
   let scanner = null;
@@ -201,7 +251,7 @@ input[type="text"], input[type="password"], button {
                 const now = new Date();
                 scanLog.push({ id: decoded, date: now.toLocaleDateString(), time: now.toLocaleTimeString() });
 
-                // ✅ Vibrate instead of beep
+                // ✅ Vibration on successful scan
                 if (navigator.vibrate) {
                   navigator.vibrate(200);
                 }
@@ -292,7 +342,7 @@ input[type="text"], input[type="password"], button {
       );
     };
 
-  // ✅ Reset today's scans with confirmation
+  // Reset scan count with confirmation
   document.getElementById("reset-btn").onclick = () => {
     const confirmReset = confirm("Are you sure you want to reset today's scan count?");
     if (confirmReset) {
@@ -306,7 +356,7 @@ input[type="text"], input[type="password"], button {
     }
   };
 
-  // ✅ Logout
+  // Logout
   document.getElementById("logout-btn").onclick = () => {
     localStorage.removeItem(TOKEN_KEY);
     document.getElementById("scanner-app").style.display = "none";
