@@ -116,7 +116,7 @@
 table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; /* ✅ Ensures equal column widths */
+  table-layout: fixed; /* Forces width allocation */
   margin-top: 10px;
   font-size: 14px;
 }
@@ -126,23 +126,13 @@ th, td {
   border: 1px solid #ccc;
   text-align: center;
   word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 th {
   background: #007BFF;
   color: white;
 }
-
-    th, td {
-      padding: 8px;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
-
-    th {
-      background: #007BFF;
-      color: white;
-    }
 
     @media (max-width: 400px) {
       table, thead, tbody, th, td, tr {
@@ -190,12 +180,17 @@ th {
 
   <button id="download-btn">Download Full CSV</button>
 
-  <table>
-    <thead>
-      <tr><th>#</th><th>Order ID</th><th>Date</th><th>Time</th></tr>
-    </thead>
-    <tbody id="log-table"></tbody>
-  </table>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 10%;">#</th>
+      <th style="width: 40%;">Order ID</th>
+      <th style="width: 25%;">Date</th>
+      <th style="width: 25%;">Time</th>
+    </tr>
+  </thead>
+  <tbody id="log-table"></tbody>
+</table>
 </div>
 
 <div id="notification">✅ Scan completed</div>
