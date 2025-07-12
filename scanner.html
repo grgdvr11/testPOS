@@ -113,14 +113,25 @@
       flex-direction: column;
     }
 
-    table {
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
-    }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* ✅ Ensures equal column widths */
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+th, td {
+  padding: 10px 5px;
+  border: 1px solid #ccc;
+  text-align: center;
+  word-wrap: break-word;
+}
+
+th {
+  background: #007BFF;
+  color: white;
+}
 
     th, td {
       padding: 8px;
