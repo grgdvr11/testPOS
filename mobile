@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kelseys' Online Goodies | Point of Sale</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .pos-container { padding: 20px; max-width: 900px; margin: auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; }
+    .cart, .products { margin-top: 20px; }
+    button { padding: 10px 20px; margin: 5px; }
+    .scanner-modal {
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100vw; height: 100vh; background: rgba(0,0,0,0.8);
+      justify-content: center; align-items: center; z-index: 1000;
+    }
+    .scanner-content {
+      background: white; padding: 20px; border-radius: 8px;
+      width: 100%; max-width: 400px;
+    }
+    @media(max-width: 600px) {
+      .scanner-content { width: 90%; }
+    }
+  </style>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body>
+  <div class="pos-container">
+    <div class="header">
+      <h2>Kelseys' Online Goodies</h2>
+      <button onclick="openBarcodeScanner()">📷 Scan Barcode</button>
+    </div>
+
+    <div id="products" class="products"></div>
+    <div class="cart" id="cart"></div>
+  </div>
+
+  <!-- Barcode Scanner Modal -->
+  <div class="scanner-modal" id="scannerModal">
+    <div class="scanner-content">
+      <div id="reader" style="width: 100%;"></div>
+      <button onclick="closeBarcodeScanner()">Close Scanner</button>
+    </div>
+  </div>
+
+  <script>
+    const defaultProducts = [
+      { code: "480000000001", name: "Biogesic Tablet 500mg", price: 6.50, stock: 100 },
+      { code: "480000000002", name: "Biogesic Caplet 500mg", price: 5.53, stock: 100 },
+      { code: "480000000003", name: "Tempra Syrup 120ml", price: 241.48, stock: 50 },
+      { code: "480000000004", name: "Calpol Syrup 120ml", price: 240.50, stock: 50 },
+      { code: "480000000005", name: "Alaxan FR Capsule", price: 11.05, stock: 100 },
+      { code: "480000000006", name: "Dolfenal Tablet", price: 23.40, stock: 100 },
+      { code: "480000000007", name: "Neozep Forte Tablet", price: 7.80, stock: 100 },
+      { code: "480000000008", name: "Decolgen Forte Tablet", price: 7.80, stock: 100 },
+      { code: "480000000009", name: "Solmux Capsule", price: 17.39, stock: 100 },
+      { code: "480000000010", name: "Solmux Syrup 60ml", price: 173.82, stock: 50 }
+    ];
+
+    let products = JSON.parse(localStorage.getItem("products")) || defaultProducts;
+    products = products.map(p => ({ ...p, code: p.code.trim().toString() }));
+
+    let cart = [];
+
+    function displayProducts() {
+      const container = document.getElementById("products");
+      container.innerHTML = "";
+      products.forEach(prod => {
+        const btn = document.createElement("button");
+        btn.textContent = `${prod.name} - ${prod.price}`;
+        btn.onclick = () => addToCart(prod.code);
+        container.appendChild(btn);
+      });
+    }
+
+    function displayCart() {
+      const cartBox = document.getElementById("cart");
+      cartBox.innerHTML = "<h3>Current Order</h3>";
+      if (cart.length === 0) return cartBox.innerHTML += "<p>No items in cart.</p>";
+
+      cart.forEach(item => {
+        const p = document.createElement("p");
+        p.textContent = `${item.name} x ${item.qty} = ${item.qty * item.price}`;
+        cartBox.appendChild(p);
+      });
+    }
+
+    function addToCart(code) {
+      const found = products.find(p => p.code === code.trim());
+      if (!found) return alert("Product not found for barcode: " + code);
+      const existing = cart.find(i => i.code === code);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cart.push({ ...found, qty: 1 });
+      }
+      displayCart();
+    }
+
+    displayProducts();
+    displayCart();
+
+    // Barcode Scanner
+    let html5QrcodeScanner;
+
+    function openBarcodeScanner() {
+      document.getElementById("scannerModal").style.display = "flex";
+      html5QrcodeScanner = new Html5Qrcode("reader");
+      Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+          html5QrcodeScanner.start(
+            { facingMode: "environment" },
+            {
+              fps: 10,
+              qrbox: { width: 250, height: 250 }
+            },
+            (decodedText) => {
+              addToCart(decodedText);
+              closeBarcodeScanner();
+            },
+            (error) => {
+              // Ignore scan errors
+            }
+          );
+        }
+      }).catch(err => {
+        alert("Camera error: " + err);
+      });
+    }
+
+    function closeBarcodeScanner() {
+      html5QrcodeScanner.stop().then(() => {
+        html5QrcodeScanner.clear();
+        document.getElementById("scannerModal").style.display = "none";
+      }).catch(err => {
+        alert("Error closing camera: " + err);
+      });
+    }
+  </script>
+</body>
+</html>
