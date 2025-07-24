@@ -359,13 +359,50 @@
     <button onclick="closeModal()">Cancel</button>
   </div>
 </div>
+
+<div id="barcodeModal" style="
+  display:none; 
+  position:fixed; 
+  top:0; 
+  left:0; 
+  width:100%; 
+  height:100%; 
+  background:#000000cc; 
+  z-index:9999; 
+  align-items:center; 
+  justify-content:center;
+  padding: 10px;
+  box-sizing: border-box;
+  flex-direction: column;
+">
+  <div style="
+    background:#fff; 
+    padding:15px; 
+    border-radius:10px; 
+    width:100%; 
+    max-width:400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  ">
+    <h3 style="margin-top:0; font-size:1.2em; text-align:center;">Scan Barcode</h3>
+    <div id="reader" style="width:100%;"></div>
+    <button onclick="closeScanner()" style="
+      width:100%; 
+      margin-top:10px; 
+      padding:10px; 
+      background:#dc3545; 
+      color:white; 
+      border:none; 
+      border-radius:5px;
+      font-size:1em;
+    ">Cancel</button>
+
 <script>
 
 
 let html5QrCode;
 
 function startScanner() {
-    document.getElementById("scanner").style.display = "block";
+    document.getElementById("scanner").style.display = "flex";
 
     html5QrCode = new Html5Qrcode("reader");
 
@@ -400,14 +437,30 @@ function stopScanner() {
 }
 
 function handleBarcode(code) {
-    const found = products.find(p => p.code === code);
-    if (found) {
-        addToCart(found.code);
-    } else {
-        alert("Product not found for barcode: " + code);
-    }
+  const cleanCode = code.trim().toString();
+  const found = products.find(p => p.code === cleanCode);
+  if (found) {
+    addToCart(found.code);
+  } else {
+    alert("Product not found for barcode: " + cleanCode);
+const found = products.find(p => p.code === code.trim());
+
+  }
 }
 
+
+function onScanSuccess(decodedText, decodedResult) {
+    const scannedCode = decodedText.trim();
+    console.log("Scanned code:", scannedCode);
+
+    const product = products.find(p => p.code === scannedCode);
+
+    if (product) {
+        addToCart(product);
+    } else {
+        alert("❌ Product not found for barcode: " + scannedCode);
+    }
+}
 
 
 
@@ -444,45 +497,42 @@ function handleBarcode(code) {
 
 
 const defaultProducts = [
-
-
-    { code: "BIO1", name: "Biogesic Tablet 500mg", price: 6.50, stock: 100 },
-    { code: "BIO2", name: "Biogesic Caplet 500mg", price: 5.53, stock: 100 },
-    { code: "TEM1", name: "Tempra Syrup 120ml", price: 241.48, stock: 50 },
-    { code: "CAL1", name: "Calpol Syrup 120ml", price: 240.50, stock: 50 },
-    { code: "ALA1", name: "Alaxan FR Capsule", price: 11.05, stock: 100 },
-    { code: "DOL1", name: "Dolfenal Tablet", price: 23.40, stock: 100 },
-
-    { code: "NEO1", name: "Neozep Forte Tablet", price: 7.80, stock: 100 },
-    { code: "DEC1", name: "Decolgen Forte Tablet", price: 7.80, stock: 100 },
-    { code: "SOL1", name: "Solmux Capsule", price: 17.39, stock: 100 },
-    { code: "SOL2", name: "Solmux Syrup 60ml", price: 173.82, stock: 50 },
-    { code: "ROB1", name: "Robitussin Syrup 120ml", price: 223.21, stock: 50 },
-    { code: "TUS1", name: "Tuseran Forte Capsule", price: 16.65, stock: 100 },
-
-    { code: "KRE1", name: "Kremil-S Tablet", price: 2.60, stock: 100 },
-    { code: "DIA1", name: "Diatabs Capsule", price: 3.90, stock: 100 },
-    { code: "BUS1", name: "Buscopan Tablet", price: 9.10, stock: 100 },
-    { code: "MOT1", name: "Motilium Tablet", price: 10.40, stock: 100 },
-
-    { code: "ALL1", name: "Allerkid Syrup 60ml", price: 130.00, stock: 50 },
-    { code: "CLA1", name: "Claritin Tablet", price: 14.30, stock: 100 },
-    { code: "VIR1", name: "Virlix Tablet", price: 47.67, stock: 100 },
-    { code: "BEN1", name: "Benadryl Syrup 60ml", price: 175.50, stock: 50 },
-
-    { code: "ENE1", name: "Enervon Tablet", price: 5.20, stock: 200 },
-    { code: "REV1", name: "Revicon Tablet", price: 6.50, stock: 200 },
-    { code: "CEE1", name: "Ceelin Syrup 60ml", price: 130.00, stock: 50 },
-    { code: "CHE1", name: "Cherifer Capsule", price: 7.80, stock: 200 },
-    { code: "CHE2", name: "Cherifer Syrup 200ml", price: 247.00, stock: 50 },
-    { code: "NUT1", name: "Nutrilin Syrup 200ml", price: 195.00, stock: 50 },
-
-    { code: "KAT1", name: "Katinko Ointment", price: 71.50, stock: 50 },
-    { code: "EFF1", name: "Efficascent Oil 60ml", price: 104.00, stock: 50 }
+  { code: "4800000000013", name: "Biogesic Tablet 500mg", price: 6.50, stock: 100 },
+  { code: "4800000000020", name: "Biogesic Caplet 500mg", price: 5.53, stock: 100 },
+  { code: "4800000000037", name: "Tempra Syrup 120ml", price: 241.48, stock: 50 },
+  { code: "4800000000044", name: "Calpol Syrup 120ml", price: 240.50, stock: 50 },
+  { code: "4800000000051", name: "Alaxan FR Capsule", price: 11.05, stock: 100 },
+  { code: "4800000000068", name: "Dolfenal Tablet", price: 23.40, stock: 100 },
+  { code: "4800000000075", name: "Neozep Forte Tablet", price: 7.80, stock: 100 },
+  { code: "4800000000082", name: "Decolgen Forte Tablet", price: 7.80, stock: 100 },
+  { code: "4800000000099", name: "Solmux Capsule", price: 17.39, stock: 100 },
+  { code: "4800000000105", name: "Solmux Syrup 60ml", price: 173.82, stock: 50 },
+  { code: "4800000000112", name: "Robitussin Syrup 120ml", price: 223.21, stock: 50 },
+  { code: "4800000000129", name: "Tuseran Forte Capsule", price: 16.65, stock: 100 },
+  { code: "4800000000136", name: "Kremil-S Tablet", price: 2.60, stock: 100 },
+  { code: "4800000000143", name: "Diatabs Capsule", price: 3.90, stock: 100 },
+  { code: "4800000000150", name: "Buscopan Tablet", price: 9.10, stock: 100 },
+  { code: "4800000000167", name: "Motilium Tablet", price: 10.40, stock: 100 },
+  { code: "4800000000174", name: "Allerkid Syrup 60ml", price: 130.00, stock: 50 },
+  { code: "4800000000181", name: "Claritin Tablet", price: 14.30, stock: 100 },
+  { code: "4800000000198", name: "Virlix Tablet", price: 47.67, stock: 100 },
+  { code: "4800000000204", name: "Benadryl Syrup 60ml", price: 175.50, stock: 50 },
+  { code: "4800000000211", name: "Enervon Tablet", price: 5.20, stock: 200 },
+  { code: "4800000000228", name: "Revicon Tablet", price: 6.50, stock: 200 },
+  { code: "4800000000235", name: "Ceelin Syrup 60ml", price: 130.00, stock: 50 },
+  { code: "4800000000242", name: "Cherifer Capsule", price: 7.80, stock: 200 },
+  { code: "4800000000259", name: "Cherifer Syrup 200ml", price: 247.00, stock: 50 },
+  { code: "4800000000266", name: "Nutrilin Syrup 200ml", price: 195.00, stock: 50 },
+  { code: "4800000000273", name: "Katinko Ointment", price: 71.50, stock: 50 },
+  { code: "4800000000280", name: "Efficascent Oil 60ml", price: 104.00, stock: 50 }
 ];
 
 
+
   let products = JSON.parse(localStorage.getItem('products')) || defaultProducts;
+  products = products.map(p => ({ ...p, code: p.code.trim().toString() }));
+
+
   function saveProducts() {
     localStorage.setItem('products', JSON.stringify(products));
   }
