@@ -237,7 +237,31 @@
       text-align: center;
       font-weight: bold;
     }
+
+#historyModal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 100;
+}
+
+#historyModal > div {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+
   </style>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
 </head>
 <body>
 <div class="datetime-bar">
@@ -259,12 +283,48 @@
       </div>
       <div>Change: <span id="change">0</span></div>
     </div>
+
+
+<div class="modal" id="historyModal" style="display: none; justify-content: center; align-items: center;">
+    <div style="background: #fff; padding: 20px; border-radius: 8px; width: 600px; max-height: 90vh; overflow-y: auto;">
+        <h2 style="margin-top: 0;">Transaction History</h2>
+        <div style="margin-bottom: 10px;">
+            <label>From: <input type="date" id="filterDateFrom"></label>
+            <label style="margin-left: 10px;">To: <input type="date" id="filterDateTo"></label>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button style="flex: 1;" onclick="extractCSVByDateRange()">Export CSV (Date Range)</button>
+            <button style="flex: 1;" onclick="clearAllHistory()">Clear History</button>
+        </div>
+        <div id="history" style="max-height: 300px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 6px;"></div>
+        <button onclick="closeHistoryModal()" style="margin-top: 20px; width: 100%;">Close</button>
+    </div>
+</div>
+
+
+
     <div class="actions">
       <button onclick="confirmPay()">Confirm & Pay</button>
       <button onclick="printReceipt()">Print Receipt</button>
       <button onclick="nextCustomer()">Next Customer</button>
       <button onclick="toggleHistory()">Transaction History</button>
       <button onclick="showSalesSummary()">Sales Summary</button>
+      
+
+<div class="modal" id="salesSummaryModal" style="display: none; justify-content: center; align-items: center;">
+    <div style="background: #fff; padding: 20px; border-radius: 8px; width: 500px; max-height: 90vh; overflow-y: auto;">
+        <h2 style="margin-top: 0;">Sales Summary</h2>
+        <div id="salesSummaryContent" style="white-space: pre-wrap; word-wrap: break-word; background: #f9f9f9; padding: 10px; border-radius: 6px; height: 300px; overflow-y: auto;"></div>
+        <button onclick="closeSalesSummaryModal()" style="margin-top: 20px; width: 100%;">Close</button>
+    </div>
+</div>
+
+<button onclick="startScanner()">Scan Barcode</button>
+<div id="scanner" style="display:none;">
+  <div id="reader" style="width: 300px;"></div>
+  <button onclick="stopScanner()">Close Scanner</button>
+</div>
+
     </div>
     <div class="history" id="historyContainer">
       <h3>Transaction History</h3>
@@ -301,31 +361,85 @@
 </div>
 <script>
 
+
+let html5QrCode;
+
+function startScanner() {
+    document.getElementById("scanner").style.display = "block";
+
+    html5QrCode = new Html5Qrcode("reader");
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        {
+            fps: 10,
+            qrbox: { width: 250, height: 250 }
+        },
+        (decodedText) => {
+            // Auto-stop after scan
+            html5QrCode.stop().then(() => {
+                document.getElementById("scanner").style.display = "none";
+
+                handleBarcode(decodedText);
+            }).catch(err => console.error("Stop failed", err));
+        },
+        (errorMsg) => {
+            // console.log(`Scan error: ${errorMsg}`);
+        }
+    ).catch(err => {
+        console.error("Start failed", err);
+    });
+}
+
+function stopScanner() {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            document.getElementById("scanner").style.display = "none";
+        }).catch(err => console.error("Stop failed", err));
+    }
+}
+
+function handleBarcode(code) {
+    const found = products.find(p => p.code === code);
+    if (found) {
+        addToCart(found.code);
+    } else {
+        alert("Product not found for barcode: " + code);
+    }
+}
+
+
+
+
+
   function showSalesSummary() {
     if (!history.length) return alert("No transactions recorded.");
     const summary = {};
     let totalSales = 0;
 
     history.forEach(tx => {
-      tx.items.forEach(item => {
-        if (!summary[item.name]) {
-          summary[item.name] = { qty: 0, total: 0 };
-        }
-        summary[item.name].qty += item.qty;
-        summary[item.name].total += item.qty * item.price;
-        totalSales += item.qty * item.price;
-      });
+        tx.items.forEach(item => {
+            if (!summary[item.name]) {
+                summary[item.name] = { qty: 0, total: 0 };
+            }
+            summary[item.name].qty += item.qty;
+            summary[item.name].total += item.qty * item.price;
+            totalSales += item.qty * item.price;
+        });
     });
 
     let message = "";
     for (const [name, data] of Object.entries(summary)) {
-      message += `${name} - Quantity Sold: ${data.qty} | Sales: ${formatNumber(data.total)}\n`;
+        message += `${name} - Quantity Sold: ${data.qty} | Sales: ${formatNumber(data.total)}\n`;
     }
-    message += "\n------------------------\n";
-    message += `Total Sales Amount: ${formatNumber(totalSales)}`;
+    message += `\n------------------------\n`;
+    message += `<span style="font-size: 1.4rem; font-weight: bold;">Total Sales Amount: ${formatNumber(totalSales)}</span>`;
 
-    alert(message);
-  }
+    document.getElementById('salesSummaryContent').innerHTML = message;
+    document.getElementById('salesSummaryModal').style.display = 'flex';
+}
+
+
 
 
 
@@ -541,6 +655,11 @@ function renderHistory() {
     history.slice().reverse().forEach(tx => {
         const div = document.createElement("div");
         div.className = "transaction";
+
+        const taxRate = 0.12;
+        const taxAmount = tx.total * taxRate / (1 + taxRate); // Extract tax from total
+        const subTotal = tx.total - taxAmount;
+
         div.innerHTML = `
             <div>
                 <strong>${tx.reference}</strong><br/>
@@ -548,7 +667,10 @@ function renderHistory() {
                 <br/>
                 <div class="transaction-details">
                     ${tx.items.map(i => `${i.name} (${formatNumber(i.price)} x ${i.qty}) = ${formatNumber(i.price * i.qty)}`).join("<br/>")}
-                    <br/>Total: ${formatNumber(tx.total)}<br/>Paid: ${formatNumber(tx.payment)} | Change: ${formatNumber(tx.change)}
+                    <br/>Subtotal: ${formatNumber(subTotal)}
+                    <br/>Tax (12%): ${formatNumber(taxAmount)}
+                    <br/>Total: ${formatNumber(tx.total)}
+                    <br/>Paid: ${formatNumber(tx.payment)} | Change: ${formatNumber(tx.change)}
                 </div>
                 <button onclick="voidTransaction('${tx.reference}')">Void This Transaction</button>
             </div>
@@ -556,6 +678,7 @@ function renderHistory() {
         container.appendChild(div);
     });
 }
+
 
 function voidTransaction(reference) {
     if (!confirm(`Are you sure you want to void transaction ${reference}?`)) return;
@@ -578,11 +701,19 @@ function voidTransaction(reference) {
     document.getElementById("payment").value = "";
     renderCart();
   }
-  function toggleHistory() {
-    const historyContainer = document.getElementById("historyContainer");
-    historyContainer.style.display = historyContainer.style.display === "block" ? "none" : "block";
+
+
+
+function toggleHistory() {
+    const modal = document.getElementById('historyModal');
+    modal.style.display = 'flex';
     renderHistory();
-  }
+}
+function closeHistoryModal() {
+    document.getElementById('historyModal').style.display = 'none';
+}
+
+
   function clearAllHistory() {
     if (confirm("Are you sure to clear all history?")) {
       history = [];
@@ -590,23 +721,61 @@ function voidTransaction(reference) {
       renderHistory();
     }
   }
-  function extractCSVByDateRange() {
+
+
+function extractCSVByDateRange() {
     const from = document.getElementById("filterDateFrom").value;
     const to = document.getElementById("filterDateTo").value;
     if (!from || !to) return alert("Select from and to dates.");
+
     const filtered = history.filter(tx => tx.date >= from && tx.date <= to);
-    if (!filtered.length) return alert("No transactions within selected dates.");
-    let csv = "Reference,Date,Time,Items,Total,Payment,Change\n";
+    if (filtered.length === 0) return alert("No transactions found in this date range.");
+
+    let csvContent = "Reference,Date,Time,Item,Price,Qty,Item Total,Subtotal,Tax,Total,Payment,Change\n";
+    const taxRate = 0.12;
+
     filtered.forEach(tx => {
-      csv += `${tx.reference},${tx.date},${tx.time},"${tx.items.map(i => `${i.name} (${i.qty} x ${i.price})`).join(' / ')}",${tx.total},${tx.payment},${tx.change}\n`;
+        const taxAmount = tx.total * taxRate / (1 + taxRate);
+        const subTotal = tx.total - taxAmount;
+
+        tx.items.forEach((item, index) => {
+            const itemTotal = item.price * item.qty;
+            csvContent += [
+                index === 0 ? tx.reference : "",
+                index === 0 ? tx.date : "",
+                index === 0 ? tx.time : "",
+                item.name,
+                item.price,
+                item.qty,
+                itemTotal,
+                index === 0 ? subTotal.toFixed(2) : "",
+                index === 0 ? taxAmount.toFixed(2) : "",
+                index === 0 ? tx.total.toFixed(2) : "",
+                index === 0 ? tx.payment.toFixed(2) : "",
+                index === 0 ? tx.change.toFixed(2) : ""
+            ].join(",") + "\n";
+        });
     });
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
-    link.href = url;
-    link.download = "TransactionHistory.csv";
+    link.href = URL.createObjectURL(blob);
+    link.download = `Transaction_History_${from}_to_${to}.csv`;
     link.click();
-  }
+}
+
+
+
+function closeSalesSummaryModal() {
+    document.getElementById('salesSummaryModal').style.display = 'none';
+}
+
+
+
+
+
+
+
 
 
 function addStockPrompt() {
@@ -621,6 +790,8 @@ function addStockPrompt() {
     renderProducts();
     alert(`Stock for ${product.name} is now ${product.stock}`);
 }
+
+
 
   renderProducts();
   renderCart();
