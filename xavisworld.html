@@ -60,7 +60,7 @@
       will-change: transform;
     }
 
-    video {
+    #videoElement {
       display: none;
     }
   </style>
@@ -72,18 +72,19 @@
 <div class="toolbar">
   <button id="captureBtn">✨ Bring to Life</button>
   <button id="clearBtn">🧹 Clear Sketchpad</button>
-  <button id="selfieBtn">📷 Capture Selfie</button>
+  <button id="voiceDrawBtn">🎤 Ask to Draw</button>
+  <button id="selfieBtn">📸 Take Selfie</button>
 </div>
 
-<video id="selfieVideo" autoplay playsinline></video>
-<canvas id="selfieCanvas" width="300" height="300" style="display:none;"></canvas>
-
+<video id="videoElement" autoplay playsinline></video>
 <div id="animatedContainer"></div>
 
 <script>
   const canvas = document.getElementById('sketchpad');
   const ctx = canvas.getContext('2d');
   let drawing = false;
+
+  const PIXABAY_API_KEY = "51500540-a492bd787c8dc71c56ed5b897";
 
   canvas.addEventListener('mousedown', startDraw);
   canvas.addEventListener('mouseup', stopDraw);
@@ -122,7 +123,7 @@
     const pos = getCoords(e);
     ctx.lineTo(pos.x, pos.y);
     ctx.strokeStyle = '#000';
-    ctx.lineWidth = 8;
+    ctx.lineWidth = 6;
     ctx.lineCap = 'round';
     ctx.stroke();
   }
@@ -143,36 +144,13 @@
     }, 5000);
   };
 
-  document.getElementById('selfieBtn').onclick = async () => {
-    const video = document.getElementById('selfieVideo');
-    const selfieCanvas = document.getElementById('selfieCanvas');
-    const selfieCtx = selfieCanvas.getContext('2d');
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' }, audio: false
-      });
-      video.srcObject = stream;
-
-      setTimeout(() => {
-        selfieCtx.drawImage(video, 0, 0, selfieCanvas.width, selfieCanvas.height);
-        const selfieDataURL = selfieCanvas.toDataURL('image/png');
-        stream.getTracks().forEach(track => track.stop());
-        animateImage(selfieDataURL);
-        speak("Here comes your selfie!");
-      }, 2000);
-    } catch (error) {
-      alert("Could not access the camera.");
-    }
-  };
-
   function speak(text) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-US';
     speechSynthesis.speak(utterance);
   }
 
-  function listenAndAnimate(drawingDataURL) {
+  function listenAndAnimate(imgSrc) {
     if (!('webkitSpeechRecognition' in window)) {
       alert('Speech recognition not supported.');
       return;
@@ -187,7 +165,7 @@
 
     recognition.onresult = () => {
       speak("Wow! Let's make it move!");
-      animateImage(drawingDataURL);
+      createMovingDrawing(imgSrc);
     };
 
     recognition.onerror = () => {
@@ -195,9 +173,9 @@
     };
   }
 
-  function animateImage(dataURL) {
+  function createMovingDrawing(imgSrc) {
     const img = new Image();
-    img.src = dataURL;
+    img.src = imgSrc;
     img.className = 'animatedDrawing';
 
     const container = document.getElementById('animatedContainer');
@@ -260,6 +238,72 @@
       move();
     }
   }
+
+  document.getElementById('voiceDrawBtn').onclick = () => {
+    speak("Tell me what to draw!");
+    if (!('webkitSpeechRecognition' in window)) {
+      alert('Speech recognition not supported.');
+      return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.start();
+
+    recognition.onresult = (event) => {
+      const command = event.results[0][0].transcript.toLowerCase();
+      speak("Drawing " + command);
+      fetchImageAndAnimate(command);
+    };
+
+    recognition.onerror = () => {
+      speak("Sorry, I didn't catch that. Try again!");
+    };
+  };
+
+  function fetchImageAndAnimate(query) {
+    fetch(`https://pixabay.com/api/?key=${PIXABAY_API_KEY}&q=${encodeURIComponent(query)}&image_type=photo&category=all&safesearch=true&orientation=horizontal`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.hits.length > 0) {
+          const bestImage = data.hits[0].webformatURL;
+          createMovingDrawing(bestImage);
+        } else {
+          speak("Sorry, I couldn't find that.");
+        }
+      })
+      .catch(() => {
+        speak("There was an error getting the image.");
+      });
+  }
+
+  // 📸 Selfie capture from front camera
+  document.getElementById('selfieBtn').onclick = async () => {
+    try {
+      const video = document.getElementById('videoElement');
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+      video.srcObject = stream;
+
+      // Wait for camera to initialize
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = video.videoWidth;
+      tempCanvas.height = video.videoHeight;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(video, 0, 0);
+
+      const selfieDataUrl = tempCanvas.toDataURL('image/png');
+      createMovingDrawing(selfieDataUrl);
+
+      stream.getTracks().forEach(track => track.stop());
+    } catch (err) {
+      speak("Oops! I couldn't access the camera.");
+    }
+  };
 </script>
 
 </body>
