@@ -2,141 +2,151 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Draw & Animate!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Draw & Play Adventure</title>
   <style>
     body {
-      font-family: 'Comic Sans MS', cursive;
-      text-align: center;
-      background: #fff8dc;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: linear-gradient(to bottom right, #e0f7fa, #ffe0b2);
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      overflow: hidden;
+      text-align: center;
     }
-    canvas {
-      border: 3px dashed #ffa500;
-      border-radius: 12px;
-      background: transparent;
+    h1 {
+      padding: 10px;
+      color: #ff7043;
+    }
+    #video, #canvas, #drawingBoard {
+      display: block;
+      margin: 10px auto;
+      border: 4px dashed #ffca28;
+      border-radius: 15px;
+    }
+    #controls {
+      margin: 10px;
     }
     button {
-      margin: 10px;
-      background-color: #ffcd4b;
-      border: none;
-      padding: 12px 24px;
+      padding: 12px 20px;
       font-size: 16px;
-      border-radius: 25px;
+      background-color: #4dd0e1;
+      border: none;
+      border-radius: 10px;
       cursor: pointer;
-      box-shadow: 2px 2px 5px #999;
+      margin: 5px;
     }
-    #animatedContainer img {
-      position: absolute;
+    button:hover {
+      background-color: #26c6da;
+    }
+    #characters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .character {
       width: 100px;
-      animation: float 3s infinite ease-in-out;
+      height: 100px;
+      background-repeat: no-repeat;
+      background-size: contain;
+      position: absolute;
+      animation: float 5s infinite ease-in-out;
     }
     @keyframes float {
-      0%   { transform: translate(0, 0); }
-      25%  { transform: translate(30px, -20px); }
-      50%  { transform: translate(0, -40px); }
-      75%  { transform: translate(-30px, -20px); }
-      100% { transform: translate(0, 0); }
-    }
-    #savedCharacters img {
-      width: 80px;
-      margin: 10px;
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-20px) translateX(20px); }
+      100% { transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-
-  <h1>🎨 Draw & Animate!</h1>
-  <video id="video" autoplay playsinline style="display:none;"></video>
-  <canvas id="drawingCanvas" width="400" height="300"></canvas>
-  <br>
-  <button id="clearBtn">🧼 Clear</button>
-  <button id="captureBtn">📸 Bring to Life</button>
-  <input type="text" id="nameInput" placeholder="Name your character..." />
-
-  <div id="animatedContainer"></div>
-
-  <h2>🧺 Saved Characters</h2>
-  <div id="savedCharacters"></div>
+  <h1>🎨 Draw & Play Adventure</h1>
+  <video id="video" width="320" height="240" autoplay playsinline muted></video>
+  <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+  <div id="controls">
+    <button onclick="captureDrawing()">📸 Capture Drawing</button>
+    <button onclick="toggleSketchpad()">✏️ Use Sketchpad</button>
+  </div>
+  <canvas id="drawingBoard" width="320" height="240" style="display:none;"></canvas>
+  <div id="characters"></div>
 
   <script>
-    const canvas = document.getElementById('drawingCanvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    const captureBtn = document.getElementById('captureBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const nameInput = document.getElementById('nameInput');
-    const animatedContainer = document.getElementById('animatedContainer');
-    const savedCharacters = document.getElementById('savedCharacters');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const drawingBoard = document.getElementById('drawingBoard');
+    const ctx = canvas.getContext('2d');
+    const drawCtx = drawingBoard.getContext('2d');
+    const charactersContainer = document.getElementById('characters');
+    let isSketchpad = false;
+    let isDrawing = false;
 
-    let drawing = false;
-
-    // Transparent background
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    canvas.addEventListener('mousedown', (e) => {
-      drawing = true;
-      ctx.beginPath();
-      ctx.moveTo(e.offsetX, e.offsetY);
-    });
-
-    canvas.addEventListener('mousemove', (e) => {
-      if (drawing) {
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-      }
-    });
-
-    canvas.addEventListener('mouseup', () => drawing = false);
-    canvas.addEventListener('mouseleave', () => drawing = false);
-
-    clearBtn.onclick = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    };
-
-    captureBtn.onclick = () => {
-      const name = nameInput.value.trim() || "My Character";
-
-      // Convert canvas to image with transparency
-      const imageURL = canvas.toDataURL('image/png');
-      const img = document.createElement('img');
-      img.src = imageURL;
-      img.alt = name;
-      img.style.left = Math.random() * (window.innerWidth - 100) + 'px';
-      img.style.top = Math.random() * (window.innerHeight - 300) + 'px';
-      animatedContainer.appendChild(img);
-
-      // Voice feedback
-      const utter = new SpeechSynthesisUtterance(`You just brought ${name} to life! That's amazing!`);
-      speechSynthesis.speak(utter);
-
-      // Save to gallery
-      const thumb = document.createElement('img');
-      thumb.src = imageURL;
-      thumb.title = name;
-      savedCharacters.appendChild(thumb);
-
-      // Reset
-      nameInput.value = '';
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    };
-
-    // Optionally use camera as background/sketch guide (invisible unless debug)
     async function setupCamera() {
-      const video = document.getElementById('video');
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: "environment" } }
-        });
+        const constraints = {
+          video: { facingMode: { ideal: "environment" } },
+          audio: false
+        };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
+        video.setAttribute('playsinline', true);
+        video.setAttribute('autoplay', true);
+        video.setAttribute('muted', true);
+        video.play();
       } catch (err) {
-        console.warn("Back camera not found. Using default.");
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
+        console.warn("Back camera unavailable, using default.", err);
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = fallbackStream;
       }
+    }
+
+    function captureDrawing() {
+      if (isSketchpad) {
+        const imageData = drawingBoard.toDataURL('image/png');
+        createCharacter(imageData);
+        clearCanvas(drawCtx);
+      } else {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL('image/png');
+        createCharacter(imageData);
+      }
+    }
+
+    function toggleSketchpad() {
+      isSketchpad = !isSketchpad;
+      video.style.display = isSketchpad ? 'none' : 'block';
+      drawingBoard.style.display = isSketchpad ? 'block' : 'none';
+    }
+
+    function createCharacter(imageData) {
+      const name = prompt("Name your character:");
+      if (!name) return;
+      const character = document.createElement('div');
+      character.className = 'character';
+      character.style.backgroundImage = `url(${imageData})`;
+      character.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
+      character.style.top = `${Math.random() * (window.innerHeight - 150)}px`;
+      charactersContainer.appendChild(character);
+
+      const msg = new SpeechSynthesisUtterance(`You just scanned ${name}! Let's go on an adventure!`);
+      window.speechSynthesis.speak(msg);
+    }
+
+    function clearCanvas(context) {
+      context.clearRect(0, 0, drawingBoard.width, drawingBoard.height);
+    }
+
+    drawingBoard.addEventListener('mousedown', () => isDrawing = true);
+    drawingBoard.addEventListener('mouseup', () => isDrawing = false);
+    drawingBoard.addEventListener('mouseout', () => isDrawing = false);
+    drawingBoard.addEventListener('mousemove', draw);
+
+    function draw(e) {
+      if (!isDrawing) return;
+      const rect = drawingBoard.getBoundingClientRect();
+      drawCtx.fillStyle = '#000';
+      drawCtx.beginPath();
+      drawCtx.arc(e.clientX - rect.left, e.clientY - rect.top, 4, 0, Math.PI * 2);
+      drawCtx.fill();
     }
 
     setupCamera();
