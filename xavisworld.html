@@ -2,180 +2,221 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Draw & Animate Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Draw & Animate</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      width: 100%;
       height: 100%;
       overflow: hidden;
       font-family: 'Comic Sans MS', cursive;
-      background: #f2f9ff;
-    }
-
-    #container {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      width: 100vw;
-    }
-
-    #sketch-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      background: #fff7e6;
     }
 
     #sketchpad {
-      border: 3px dashed #4a90e2;
-      background: white;
-      cursor: crosshair;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 2;
+      background: #ffffff;
+      border: 5px dashed #ffa726;
+      border-radius: 10px;
     }
 
-    #controls {
-      margin: 10px;
+    .toolbar {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    #characters {
+    .toolbar button {
+      background: #ffb74d;
+      border: none;
+      padding: 12px 18px;
+      font-size: 16px;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    #animatedContainer {
       position: absolute;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      z-index: 1;
+      width: 100vw;
+      height: 100vh;
       pointer-events: none;
-      z-index: 2;
+    }
+
+    .animatedDrawing {
+      position: absolute;
+      width: 120px;
+      will-change: transform;
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <div id="sketch-area">
-      <canvas id="sketchpad" width="300" height="300"></canvas>
-      <div id="controls">
-        <button onclick="clearSketchpad()">Clear Drawing</button>
-        <button onclick="captureDrawing()">Animate Drawing</button>
-      </div>
-    </div>
-    <div id="characters"></div>
-  </div>
 
-  <audio id="move-sound" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg"></audio>
+<canvas id="sketchpad" width="300" height="300"></canvas>
 
-  <script>
-    const canvas = document.getElementById('sketchpad');
-    const ctx = canvas.getContext('2d');
-    let drawing = false;
+<div class="toolbar">
+  <button id="captureBtn">✨ Bring to Life</button>
+  <button id="clearBtn">🧹 Clear Sketchpad</button>
+</div>
 
-    canvas.addEventListener('mousedown', () => drawing = true);
-    canvas.addEventListener('mouseup', () => drawing = false);
-    canvas.addEventListener('mouseout', () => drawing = false);
-    canvas.addEventListener('mousemove', draw);
+<div id="animatedContainer"></div>
 
-    function draw(e) {
-      if (!drawing) return;
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = '#333';
+<!-- Preload magic sound -->
+<audio id="magicSound" src="https://cdn.pixabay.com/download/audio/2023/03/23/audio_9e5a4d0473.mp3?filename=magic-sparkle-126335.mp3" preload="auto"></audio>
 
-      const rect = canvas.getBoundingClientRect();
-      ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-    }
+<script>
+  const canvas = document.getElementById('sketchpad');
+  const ctx = canvas.getContext('2d');
+  let drawing = false;
 
-    function clearSketchpad() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+  const magicSound = document.getElementById('magicSound');
 
-    function captureDrawing() {
-      speak("What did you draw?");
-      listenAndAnimate();
-    }
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('touchstart', startDraw);
+  canvas.addEventListener('touchend', stopDraw);
+  canvas.addEventListener('touchmove', drawTouch);
 
-    function listenAndAnimate() {
-      if (!('webkitSpeechRecognition' in window)) {
-        alert('Speech recognition not supported.');
-        return;
-      }
-
-      setTimeout(() => {
-        const recognition = new webkitSpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.start();
-
-        recognition.onresult = (event) => {
-          const name = event.results[0][0].transcript;
-          speak(`Wow! Let's animate your ${name}!`);
-          createMovingDrawing();
-        };
-
-        recognition.onerror = () => {
-          speak("Oops! Try saying it again!");
-        };
-      }, 5000);
-    }
-
-    function speak(text) {
-      const synth = window.speechSynthesis;
-      const utterance = new SpeechSynthesisUtterance(text);
-      synth.speak(utterance);
-    }
-
-    function createMovingDrawing() {
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const offCanvas = document.createElement('canvas');
-      offCanvas.width = canvas.width;
-      offCanvas.height = canvas.height;
-      const offCtx = offCanvas.getContext('2d');
-
-      // Remove white background
-      for (let i = 0; i < imgData.data.length; i += 4) {
-        const r = imgData.data[i];
-        const g = imgData.data[i + 1];
-        const b = imgData.data[i + 2];
-        if (r > 200 && g > 200 && b > 200) {
-          imgData.data[i + 3] = 0;
-        }
-      }
-      offCtx.putImageData(imgData, 0, 0);
-
-      const img = new Image();
-      img.src = offCanvas.toDataURL();
-
-      img.onload = () => {
-        const character = document.createElement('img');
-        character.src = img.src;
-        character.style.position = 'absolute';
-        character.style.width = '100px';
-        character.style.height = '100px';
-        character.style.top = Math.random() * window.innerHeight + 'px';
-        character.style.left = Math.random() * window.innerWidth + 'px';
-        character.style.transition = 'transform 1s ease-in-out';
-        document.getElementById('characters').appendChild(character);
-
-        const moveSound = document.getElementById('move-sound');
-        function animate() {
-          const dx = Math.random() * window.innerWidth;
-          const dy = Math.random() * window.innerHeight;
-          const rotate = Math.random() * 360;
-          character.style.transform = `translate(${dx}px, ${dy}px) rotate(${rotate}deg)`;
-          moveSound.play();
-          setTimeout(animate, 2000 + Math.random() * 2000);
-        }
-        animate();
+  function getCoords(e) {
+    if (e.touches) {
+      return {
+        x: e.touches[0].clientX - canvas.getBoundingClientRect().left,
+        y: e.touches[0].clientY - canvas.getBoundingClientRect().top
       };
-
-      // Keep the existing drawing, clear only sketchpad
-      clearSketchpad();
+    } else {
+      return {
+        x: e.offsetX,
+        y: e.offsetY
+      };
     }
-  </script>
+  }
+
+  function startDraw(e) {
+    drawing = true;
+    const pos = getCoords(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+  }
+
+  function stopDraw() {
+    drawing = false;
+  }
+
+  function draw(e) {
+    if (!drawing) return;
+    const pos = getCoords(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+
+  function drawTouch(e) {
+    e.preventDefault();
+    draw(e);
+  }
+
+  document.getElementById('clearBtn').onclick = () => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  document.getElementById('captureBtn').onclick = () => {
+    speak("What did you draw?");
+    setTimeout(() => {
+      listenAndAnimate();
+    }, 5000); // wait 5 seconds before listening
+  };
+
+  function speak(text) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    speechSynthesis.speak(utterance);
+  }
+
+  function listenAndAnimate() {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert('Speech recognition not supported.');
+      return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.start();
+
+    recognition.onresult = (event) => {
+      const name = event.results[0][0].transcript;
+      speak(`Wow! Let's bring your ${name} to life!`);
+      createMovingDrawing();
+    };
+
+    recognition.onerror = () => {
+      speak("Oops! Try saying it again!");
+    };
+  }
+
+  function createMovingDrawing() {
+    const img = new Image();
+    img.src = canvas.toDataURL('image/png');
+    img.className = 'animatedDrawing';
+
+    const container = document.getElementById('animatedContainer');
+    container.appendChild(img);
+
+    // Play magic sound (after user interaction)
+    magicSound.currentTime = 0;
+    magicSound.play();
+
+    let x = window.innerWidth / 2 - 60;
+    let y = -150;
+    let dx = (Math.random() - 0.5) * 4;
+    let dy = (Math.random() - 0.5) * 4;
+    let angle = 0;
+
+    img.style.left = x + 'px';
+    img.style.top = y + 'px';
+
+    let fallInterval = setInterval(() => {
+      y += 10;
+      img.style.transform = `translate(${x}px, ${y}px) scale(1.2)`;
+      if (y >= window.innerHeight / 2) {
+        clearInterval(fallInterval);
+        bounceAround();
+      }
+    }, 30);
+
+    function bounceAround() {
+      function move() {
+        x += dx;
+        y += dy;
+        angle += 5;
+
+        if (x < 0 || x > window.innerWidth - 120) dx *= -1;
+        if (y < 0 || y > window.innerHeight - 120) dy *= -1;
+
+        img.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg) scale(1.1)`;
+        requestAnimationFrame(move);
+      }
+
+      move();
+    }
+  }
+</script>
+
 </body>
 </html>
