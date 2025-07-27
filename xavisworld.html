@@ -1,57 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Test Camera + ML</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ml5/0.12.2/ml5.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Draw & Come Alive!</title>
   <style>
-    body { font-family: sans-serif; text-align: center; background: #fefae0; }
-    video, canvas { border: 4px dashed orange; margin: 10px; border-radius: 10px; max-width: 100%; }
-    button { padding: 10px 20px; font-size: 18px; background: gold; border-radius: 10px; }
+    body {
+      font-family: 'Comic Sans MS', cursive;
+      text-align: center;
+      background: #fefae0;
+      margin: 0;
+      padding: 20px;
+    }
+    video, canvas {
+      border: 5px dashed #ffa500;
+      border-radius: 12px;
+      max-width: 90vw;
+    }
+    button {
+      margin-top: 15px;
+      background-color: #ffcd4b;
+      border: none;
+      padding: 12px 24px;
+      font-size: 18px;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 2px 2px 5px #999;
+    }
+    .floatingImage {
+      position: absolute;
+      width: 150px;
+      pointer-events: none;
+      animation: float 3s ease-in-out infinite, moveAround 10s linear infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    @keyframes moveAround {
+      0% { left: 0%; top: 10%; }
+      25% { left: 70%; top: 20%; }
+      50% { left: 30%; top: 60%; }
+      75% { left: 80%; top: 40%; }
+      100% { left: 0%; top: 10%; }
+    }
   </style>
 </head>
 <body>
-  <h2>📸 Camera Test</h2>
-  <video id="video" autoplay playsinline width="300" height="250"></video><br>
-  <button id="captureBtn" disabled>Capture & Classify</button>
-  <canvas id="canvas" width="300" height="250" style="display:none;"></canvas>
-  <p id="result">Loading model...</p>
+  <h1>🖍️ Draw & Come Alive! 🎨</h1>
+
+  <video id="video" width="400" height="300" autoplay></video>
+  <canvas id="canvas" width="400" height="300" style="display:none; background: transparent;"></canvas>
+  <br>
+  <button id="captureBtn">📸 Capture Drawing</button>
+
+  <div id="animatedOutput"></div>
+
+  <!-- Sound -->
+  <audio id="popSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
 
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const result = document.getElementById('result');
     const captureBtn = document.getElementById('captureBtn');
-    let classifier;
+    const outputDiv = document.getElementById('animatedOutput');
+    const popSound = document.getElementById('popSound');
 
-    async function initCamera() {
+    // Fun facts to randomly pick from
+    const funFacts = [
+      "You just scanned a Lion! Did you know lions live in groups called prides?",
+      "You just scanned a Flower! Some flowers can track the sun's movement across the sky!",
+      "You just scanned a Car! The first cars didn’t have steering wheels—just levers!",
+      "You just scanned a Tree! Trees are the longest-living organisms on Earth.",
+      "You just scanned a Bird! Some birds can mimic human speech!"
+    ];
+
+    function speakFact(text) {
+      const synth = window.speechSynthesis;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 1;
+      utter.pitch = 1;
+      synth.speak(utter);
+    }
+
+    async function setupCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
-        console.log('Camera started');
       } catch (err) {
-        alert('Camera not accessible: ' + err.message);
+        alert('Camera access denied or not available.');
       }
     }
 
-    initCamera();
-
-    ml5.imageClassifier('MobileNet', (model) => {
-      classifier = model;
-      result.innerText = 'Model loaded! Show something and click Capture.';
-      captureBtn.disabled = false;
-    });
+    setupCamera();
 
     captureBtn.onclick = () => {
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      classifier.classify(canvas, (err, results) => {
-        if (err) {
-          result.innerText = 'Error: ' + err;
-          return;
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+
+      // Remove light background
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        if (r > 200 && g > 200 && b > 200) {
+          data[i + 3] = 0;
         }
-        result.innerHTML = `Prediction: <b>${results[0].label}</b><br>Confidence: ${(results[0].confidence * 100).toFixed(1)}%`;
-      });
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+
+      const img = new Image();
+      img.src = canvas.toDataURL('image/png');
+      img.classList.add('floatingImage');
+
+      img.onload = () => {
+        img.style.left = Math.random() * 80 + '%';
+        img.style.top = Math.random() * 60 + '%';
+        outputDiv.appendChild(img);
+
+        popSound.currentTime = 0;
+        popSound.play();
+
+        // Speak a fun fact!
+        const randomFact = funFacts[Math.floor(Math.random() * funFacts.length)];
+        speakFact(randomFact);
+      };
     };
   </script>
 </body>
