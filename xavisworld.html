@@ -54,6 +54,8 @@
   <h1>🎨 Draw & Watch It Come to Life! 🐾</h1>
 
   <canvas id="drawArea" width="300" height="300"></canvas><br>
+  <button id="clearBtn">🧽 Clear Drawing</button><br>
+
   <label for="charName">Character Name: </label>
   <input type="text" id="charName" placeholder="e.g. Bouncy Lion" /><br>
   <button id="spawnBtn">✨ Bring to Life!</button>
@@ -67,6 +69,7 @@
     const drawCanvas = document.getElementById('drawArea');
     const drawCtx = drawCanvas.getContext('2d');
     const spawnBtn = document.getElementById('spawnBtn');
+    const clearBtn = document.getElementById('clearBtn');
     const charactersContainer = document.getElementById('charactersContainer');
 
     let isDrawing = false;
@@ -90,6 +93,11 @@
     drawCanvas.addEventListener('pointerup', () => {
       isDrawing = false;
     });
+
+    // Clear drawing
+    clearBtn.onclick = () => {
+      drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    };
 
     // Voice feedback
     function speakFact(name) {
@@ -152,7 +160,7 @@
     async function setupCamera() {
       const constraints = {
         video: {
-          facingMode: { exact: "environment" } // Try back camera
+          facingMode: { exact: "environment" }
         }
       };
 
