@@ -1,137 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Draw & Come Alive!</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Test Camera + ML</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ml5/0.12.2/ml5.min.js"></script>
   <style>
-    body {
-      font-family: 'Comic Sans MS', cursive;
-      text-align: center;
-      background: #fefae0;
-      margin: 0;
-      padding: 20px;
-    }
-    video, canvas {
-      border: 5px dashed #ffa500;
-      border-radius: 12px;
-      max-width: 90vw;
-    }
-    button {
-      margin-top: 15px;
-      background-color: #ffcd4b;
-      border: none;
-      padding: 12px 24px;
-      font-size: 18px;
-      border-radius: 25px;
-      cursor: pointer;
-      box-shadow: 2px 2px 5px #999;
-    }
-    .resultBox {
-      margin-top: 20px;
-      font-size: 20px;
-      background-color: #fff8;
-      padding: 10px;
-      border-radius: 12px;
-      display: inline-block;
-    }
-    .animatedObject {
-      animation: bounce 1s infinite;
-      width: 100px;
-      margin-top: 20px;
-    }
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-15px); }
-    }
+    body { font-family: sans-serif; text-align: center; background: #fefae0; }
+    video, canvas { border: 4px dashed orange; margin: 10px; border-radius: 10px; max-width: 100%; }
+    button { padding: 10px 20px; font-size: 18px; background: gold; border-radius: 10px; }
   </style>
 </head>
 <body>
-  <h1>🖍️ Draw & Come Alive! 🧠</h1>
-
-  <video id="video" width="400" height="300" autoplay></video>
-  <canvas id="canvas" width="400" height="300" style="display:none;"></canvas>
-  <br>
-  <button id="captureBtn" disabled>📸 Capture Drawing</button>
-
-  <div class="resultBox" id="result">Waiting for model to load...</div>
-  <div id="animatedOutput"></div>
+  <h2>📸 Camera Test</h2>
+  <video id="video" autoplay playsinline width="300" height="250"></video><br>
+  <button id="captureBtn" disabled>Capture & Classify</button>
+  <canvas id="canvas" width="300" height="250" style="display:none;"></canvas>
+  <p id="result">Loading model...</p>
 
   <script>
-    let video = document.getElementById('video');
-    let canvas = document.getElementById('canvas');
-    let captureBtn = document.getElementById('captureBtn');
-    let resultDiv = document.getElementById('result');
-    let outputDiv = document.getElementById('animatedOutput');
-
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const result = document.getElementById('result');
+    const captureBtn = document.getElementById('captureBtn');
     let classifier;
-    let modelReady = false;
 
-    // Start webcam
-    async function setupCamera() {
+    async function initCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
+        console.log('Camera started');
       } catch (err) {
-        alert('Camera access denied or not available.');
+        alert('Camera not accessible: ' + err.message);
       }
     }
 
-    setupCamera();
+    initCamera();
 
-    // Load model
-    ml5.imageClassifier('MobileNet', (loadedClassifier) => {
-      classifier = loadedClassifier;
-      modelReady = true;
-      resultDiv.innerText = 'Model Loaded! Show your drawing and press Capture.';
+    ml5.imageClassifier('MobileNet', (model) => {
+      classifier = model;
+      result.innerText = 'Model loaded! Show something and click Capture.';
       captureBtn.disabled = false;
     });
 
     captureBtn.onclick = () => {
-      if (!modelReady) {
-        alert('Please wait for the model to load.');
-        return;
-      }
-
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
       classifier.classify(canvas, (err, results) => {
         if (err) {
-          console.error(err);
-          resultDiv.innerText = 'Oops! Something went wrong.';
+          result.innerText = 'Error: ' + err;
           return;
         }
-
-        const label = results[0].label;
-        const confidence = results[0].confidence;
-
-        resultDiv.innerHTML = `I see: <b>${label}</b> (${(confidence * 100).toFixed(1)}%)`;
-        showAnimatedCharacter(label);
+        result.innerHTML = `Prediction: <b>${results[0].label}</b><br>Confidence: ${(results[0].confidence * 100).toFixed(1)}%`;
       });
     };
-
-    function showAnimatedCharacter(label) {
-      outputDiv.innerHTML = '';
-      const img = document.createElement('img');
-      img.classList.add('animatedObject');
-
-      if (label.toLowerCase().includes('cat')) {
-        img.src = 'https://cdn-icons-png.flaticon.com/512/616/616408.png';
-      } else if (label.toLowerCase().includes('dog')) {
-        img.src = 'https://cdn-icons-png.flaticon.com/512/616/616408.png';
-      } else if (label.toLowerCase().includes('flower')) {
-        img.src = 'https://cdn-icons-png.flaticon.com/512/869/869869.png';
-      } else if (label.toLowerCase().includes('car')) {
-        img.src = 'https://cdn-icons-png.flaticon.com/512/743/743007.png';
-      } else {
-        img.src = 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png';
-      }
-
-      outputDiv.appendChild(img);
-    }
   </script>
 </body>
 </html>
