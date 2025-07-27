@@ -3,135 +3,143 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Draw & Come Alive!</title>
+  <title>Draw & Animate!</title>
   <style>
     body {
       font-family: 'Comic Sans MS', cursive;
       text-align: center;
-      background: #fefae0;
+      background: #fff8dc;
       margin: 0;
       padding: 20px;
     }
-    video, canvas {
-      border: 5px dashed #ffa500;
+    canvas {
+      border: 3px dashed #ffa500;
       border-radius: 12px;
-      max-width: 90vw;
+      background: transparent;
     }
     button {
-      margin-top: 15px;
+      margin: 10px;
       background-color: #ffcd4b;
       border: none;
       padding: 12px 24px;
-      font-size: 18px;
+      font-size: 16px;
       border-radius: 25px;
       cursor: pointer;
       box-shadow: 2px 2px 5px #999;
     }
-    .floatingImage {
+    #animatedContainer img {
       position: absolute;
-      width: 150px;
-      pointer-events: none;
-      animation: float 3s ease-in-out infinite, moveAround 10s linear infinite;
+      width: 100px;
+      animation: float 3s infinite ease-in-out;
     }
     @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-20px); }
+      0%   { transform: translate(0, 0); }
+      25%  { transform: translate(30px, -20px); }
+      50%  { transform: translate(0, -40px); }
+      75%  { transform: translate(-30px, -20px); }
+      100% { transform: translate(0, 0); }
     }
-    @keyframes moveAround {
-      0% { left: 0%; top: 10%; }
-      25% { left: 70%; top: 20%; }
-      50% { left: 30%; top: 60%; }
-      75% { left: 80%; top: 40%; }
-      100% { left: 0%; top: 10%; }
+    #savedCharacters img {
+      width: 80px;
+      margin: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>🖍️ Draw & Come Alive! 🎨</h1>
 
-  <video id="video" width="400" height="300" autoplay></video>
-  <canvas id="canvas" width="400" height="300" style="display:none; background: transparent;"></canvas>
+  <h1>🎨 Draw & Animate!</h1>
+  <video id="video" autoplay playsinline style="display:none;"></video>
+  <canvas id="drawingCanvas" width="400" height="300"></canvas>
   <br>
-  <button id="captureBtn">📸 Capture Drawing</button>
+  <button id="clearBtn">🧼 Clear</button>
+  <button id="captureBtn">📸 Bring to Life</button>
+  <input type="text" id="nameInput" placeholder="Name your character..." />
 
-  <div id="animatedOutput"></div>
+  <div id="animatedContainer"></div>
 
-  <!-- Sound -->
-  <audio id="popSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
+  <h2>🧺 Saved Characters</h2>
+  <div id="savedCharacters"></div>
 
   <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
+    const canvas = document.getElementById('drawingCanvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const captureBtn = document.getElementById('captureBtn');
-    const outputDiv = document.getElementById('animatedOutput');
-    const popSound = document.getElementById('popSound');
+    const clearBtn = document.getElementById('clearBtn');
+    const nameInput = document.getElementById('nameInput');
+    const animatedContainer = document.getElementById('animatedContainer');
+    const savedCharacters = document.getElementById('savedCharacters');
 
-    // Fun facts to randomly pick from
-    const funFacts = [
-      "You just scanned a Lion! Did you know lions live in groups called prides?",
-      "You just scanned a Flower! Some flowers can track the sun's movement across the sky!",
-      "You just scanned a Car! The first cars didn’t have steering wheels—just levers!",
-      "You just scanned a Tree! Trees are the longest-living organisms on Earth.",
-      "You just scanned a Bird! Some birds can mimic human speech!"
-    ];
+    let drawing = false;
 
-    function speakFact(text) {
-      const synth = window.speechSynthesis;
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.rate = 1;
-      utter.pitch = 1;
-      synth.speak(utter);
-    }
+    // Transparent background
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    canvas.addEventListener('mousedown', (e) => {
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (drawing) {
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+    });
+
+    canvas.addEventListener('mouseup', () => drawing = false);
+    canvas.addEventListener('mouseleave', () => drawing = false);
+
+    clearBtn.onclick = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    captureBtn.onclick = () => {
+      const name = nameInput.value.trim() || "My Character";
+
+      // Convert canvas to image with transparency
+      const imageURL = canvas.toDataURL('image/png');
+      const img = document.createElement('img');
+      img.src = imageURL;
+      img.alt = name;
+      img.style.left = Math.random() * (window.innerWidth - 100) + 'px';
+      img.style.top = Math.random() * (window.innerHeight - 300) + 'px';
+      animatedContainer.appendChild(img);
+
+      // Voice feedback
+      const utter = new SpeechSynthesisUtterance(`You just brought ${name} to life! That's amazing!`);
+      speechSynthesis.speak(utter);
+
+      // Save to gallery
+      const thumb = document.createElement('img');
+      thumb.src = imageURL;
+      thumb.title = name;
+      savedCharacters.appendChild(thumb);
+
+      // Reset
+      nameInput.value = '';
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
+    // Optionally use camera as background/sketch guide (invisible unless debug)
     async function setupCamera() {
+      const video = document.getElementById('video');
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "environment" } }
+        });
         video.srcObject = stream;
       } catch (err) {
-        alert('Camera access denied or not available.');
+        console.warn("Back camera not found. Using default.");
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
       }
     }
 
     setupCamera();
-
-    captureBtn.onclick = () => {
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-
-      // Remove light background
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-
-        if (r > 200 && g > 200 && b > 200) {
-          data[i + 3] = 0;
-        }
-      }
-
-      ctx.putImageData(imageData, 0, 0);
-
-      const img = new Image();
-      img.src = canvas.toDataURL('image/png');
-      img.classList.add('floatingImage');
-
-      img.onload = () => {
-        img.style.left = Math.random() * 80 + '%';
-        img.style.top = Math.random() * 60 + '%';
-        outputDiv.appendChild(img);
-
-        popSound.currentTime = 0;
-        popSound.play();
-
-        // Speak a fun fact!
-        const randomFact = funFacts[Math.floor(Math.random() * funFacts.length)];
-        speakFact(randomFact);
-      };
-    };
   </script>
 </body>
 </html>
