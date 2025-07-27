@@ -27,7 +27,7 @@
     .toolbar {
       position: absolute;
       top: 20px;
-      right: 20px;
+      left: 540px;
       z-index: 3;
       display: flex;
       flex-direction: column;
@@ -56,31 +56,34 @@
 
     .animatedDrawing {
       position: absolute;
-      width: 120px;
+      width: 200px;
       will-change: transform;
+    }
+
+    video {
+      display: none;
     }
   </style>
 </head>
 <body>
 
-<canvas id="sketchpad" width="300" height="300"></canvas>
+<canvas id="sketchpad" width="500" height="500"></canvas>
 
 <div class="toolbar">
   <button id="captureBtn">✨ Bring to Life</button>
   <button id="clearBtn">🧹 Clear Sketchpad</button>
+  <button id="selfieBtn">📷 Capture Selfie</button>
 </div>
 
-<div id="animatedContainer"></div>
+<video id="selfieVideo" autoplay playsinline></video>
+<canvas id="selfieCanvas" width="300" height="300" style="display:none;"></canvas>
 
-<!-- Preload magic sound -->
-<audio id="magicSound" src="https://cdn.pixabay.com/download/audio/2023/03/23/audio_9e5a4d0473.mp3?filename=magic-sparkle-126335.mp3" preload="auto"></audio>
+<div id="animatedContainer"></div>
 
 <script>
   const canvas = document.getElementById('sketchpad');
   const ctx = canvas.getContext('2d');
   let drawing = false;
-
-  const magicSound = document.getElementById('magicSound');
 
   canvas.addEventListener('mousedown', startDraw);
   canvas.addEventListener('mouseup', stopDraw);
@@ -119,7 +122,7 @@
     const pos = getCoords(e);
     ctx.lineTo(pos.x, pos.y);
     ctx.strokeStyle = '#000';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 8;
     ctx.lineCap = 'round';
     ctx.stroke();
   }
@@ -136,8 +139,31 @@
   document.getElementById('captureBtn').onclick = () => {
     speak("What did you draw?");
     setTimeout(() => {
-      listenAndAnimate();
-    }, 5000); // wait 5 seconds before listening
+      listenAndAnimate(canvas.toDataURL('image/png'));
+    }, 5000);
+  };
+
+  document.getElementById('selfieBtn').onclick = async () => {
+    const video = document.getElementById('selfieVideo');
+    const selfieCanvas = document.getElementById('selfieCanvas');
+    const selfieCtx = selfieCanvas.getContext('2d');
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' }, audio: false
+      });
+      video.srcObject = stream;
+
+      setTimeout(() => {
+        selfieCtx.drawImage(video, 0, 0, selfieCanvas.width, selfieCanvas.height);
+        const selfieDataURL = selfieCanvas.toDataURL('image/png');
+        stream.getTracks().forEach(track => track.stop());
+        animateImage(selfieDataURL);
+        speak("Here comes your selfie!");
+      }, 2000);
+    } catch (error) {
+      alert("Could not access the camera.");
+    }
   };
 
   function speak(text) {
@@ -146,7 +172,7 @@
     speechSynthesis.speak(utterance);
   }
 
-  function listenAndAnimate() {
+  function listenAndAnimate(drawingDataURL) {
     if (!('webkitSpeechRecognition' in window)) {
       alert('Speech recognition not supported.');
       return;
@@ -159,10 +185,9 @@
 
     recognition.start();
 
-    recognition.onresult = (event) => {
-      const name = event.results[0][0].transcript;
-      speak(`Wow! Let's bring your ${name} to life!`);
-      createMovingDrawing();
+    recognition.onresult = () => {
+      speak("Wow! Let's make it move!");
+      animateImage(drawingDataURL);
     };
 
     recognition.onerror = () => {
@@ -170,46 +195,65 @@
     };
   }
 
-  function createMovingDrawing() {
+  function animateImage(dataURL) {
     const img = new Image();
-    img.src = canvas.toDataURL('image/png');
+    img.src = dataURL;
     img.className = 'animatedDrawing';
 
     const container = document.getElementById('animatedContainer');
     container.appendChild(img);
 
-    // Play magic sound (after user interaction)
-    magicSound.currentTime = 0;
-    magicSound.play();
+    let x = window.innerWidth / 2 - 100;
+    let y = 0;
+    let dy = 6;
 
-    let x = window.innerWidth / 2 - 60;
-    let y = -150;
-    let dx = (Math.random() - 0.5) * 4;
-    let dy = (Math.random() - 0.5) * 4;
-    let angle = 0;
+    const sound = new Audio('https://cdn.pixabay.com/download/audio/2023/03/28/audio_240926b922.mp3?filename=magic-wand-109277.mp3');
+    sound.volume = 0.6;
+    sound.play();
 
-    img.style.left = x + 'px';
-    img.style.top = y + 'px';
-
-    let fallInterval = setInterval(() => {
-      y += 10;
-      img.style.transform = `translate(${x}px, ${y}px) scale(1.2)`;
-      if (y >= window.innerHeight / 2) {
-        clearInterval(fallInterval);
-        bounceAround();
-      }
-    }, 30);
-
-    function bounceAround() {
-      function move() {
-        x += dx;
+    function fall() {
+      if (y < window.innerHeight / 2) {
         y += dy;
-        angle += 5;
+        img.style.transform = `translate(${x}px, ${y}px)`;
+        requestAnimationFrame(fall);
+      } else {
+        animateRandomly();
+      }
+    }
 
-        if (x < 0 || x > window.innerWidth - 120) dx *= -1;
-        if (y < 0 || y > window.innerHeight - 120) dy *= -1;
+    fall();
 
-        img.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg) scale(1.1)`;
+    function animateRandomly() {
+      let mode = 0;
+      let angle = 0;
+      let dx = (Math.random() - 0.5) * 6;
+      let dy = (Math.random() - 0.5) * 6;
+      let scale = 1;
+
+      setInterval(() => {
+        mode = Math.floor(Math.random() * 4);
+      }, 2000);
+
+      function move() {
+        switch(mode) {
+          case 0:
+            x += dx;
+            y += dy;
+            if (x < 0 || x > window.innerWidth - 200) dx *= -1;
+            if (y < 0 || y > window.innerHeight - 200) dy *= -1;
+            break;
+          case 1:
+            angle += 6;
+            break;
+          case 2:
+            angle += Math.sin(Date.now() / 300) * 2;
+            break;
+          case 3:
+            scale = 1 + 0.1 * Math.sin(Date.now() / 200);
+            break;
+        }
+
+        img.style.transform = `translate(${x}px, ${y}px) rotate(${angle}deg) scale(${scale})`;
         requestAnimationFrame(move);
       }
 
