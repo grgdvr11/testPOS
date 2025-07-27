@@ -2,151 +2,167 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Draw & Play Adventure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Draw & Bring It to Life!</title>
   <style>
     body {
-      font-family: 'Comic Sans MS', cursive, sans-serif;
-      background: linear-gradient(to bottom right, #e0f7fa, #ffe0b2);
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
+      font-family: 'Comic Sans MS', cursive;
       text-align: center;
+      background: #fdf6e3;
+      overflow: hidden;
+      margin: 0;
+      padding: 20px;
     }
-    h1 {
-      padding: 10px;
-      color: #ff7043;
-    }
-    #video, #canvas, #drawingBoard {
-      display: block;
-      margin: 10px auto;
-      border: 4px dashed #ffca28;
-      border-radius: 15px;
-    }
-    #controls {
-      margin: 10px;
+    #video, #canvas {
+      display: none;
     }
     button {
-      padding: 12px 20px;
-      font-size: 16px;
-      background-color: #4dd0e1;
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background: #ffcc70;
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      margin: 5px;
-    }
-    button:hover {
-      background-color: #26c6da;
-    }
-    #characters {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 20px;
     }
     .character {
-      width: 100px;
-      height: 100px;
-      background-repeat: no-repeat;
-      background-size: contain;
       position: absolute;
-      animation: float 5s infinite ease-in-out;
+      width: 100px;
+      transition: transform 0.3s ease;
+      animation: rotateAndBounce 5s infinite linear;
     }
-    @keyframes float {
-      0% { transform: translateY(0); }
-      50% { transform: translateY(-20px) translateX(20px); }
-      100% { transform: translateY(0); }
+    @keyframes rotateAndBounce {
+      0% { transform: rotate(0deg) translateY(0); }
+      25% { transform: rotate(15deg) translateY(-20px); }
+      50% { transform: rotate(0deg) translateY(0); }
+      75% { transform: rotate(-15deg) translateY(20px); }
+      100% { transform: rotate(0deg) translateY(0); }
+    }
+    #drawArea {
+      border: 2px dashed #aaa;
+      background: white;
+      touch-action: none;
+    }
+    input, label {
+      font-size: 16px;
+      margin: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>🎨 Draw & Play Adventure</h1>
-  <video id="video" width="320" height="240" autoplay playsinline muted></video>
-  <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
-  <div id="controls">
-    <button onclick="captureDrawing()">📸 Capture Drawing</button>
-    <button onclick="toggleSketchpad()">✏️ Use Sketchpad</button>
-  </div>
-  <canvas id="drawingBoard" width="320" height="240" style="display:none;"></canvas>
-  <div id="characters"></div>
+
+  <h1>🎨 Draw & Watch It Come to Life! 🐾</h1>
+
+  <canvas id="drawArea" width="300" height="300"></canvas><br>
+  <label for="charName">Character Name: </label>
+  <input type="text" id="charName" placeholder="e.g. Bouncy Lion" /><br>
+  <button id="spawnBtn">✨ Bring to Life!</button>
+
+  <canvas id="canvas" width="300" height="300"></canvas>
+  <video id="video" autoplay playsinline></video>
+
+  <div id="charactersContainer"></div>
 
   <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const drawingBoard = document.getElementById('drawingBoard');
-    const ctx = canvas.getContext('2d');
-    const drawCtx = drawingBoard.getContext('2d');
-    const charactersContainer = document.getElementById('characters');
-    let isSketchpad = false;
+    const drawCanvas = document.getElementById('drawArea');
+    const drawCtx = drawCanvas.getContext('2d');
+    const spawnBtn = document.getElementById('spawnBtn');
+    const charactersContainer = document.getElementById('charactersContainer');
+
     let isDrawing = false;
 
-    async function setupCamera() {
-      try {
-        const constraints = {
-          video: { facingMode: { ideal: "environment" } },
-          audio: false
-        };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        video.srcObject = stream;
-        video.setAttribute('playsinline', true);
-        video.setAttribute('autoplay', true);
-        video.setAttribute('muted', true);
-        video.play();
-      } catch (err) {
-        console.warn("Back camera unavailable, using default.", err);
-        const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = fallbackStream;
-      }
-    }
-
-    function captureDrawing() {
-      if (isSketchpad) {
-        const imageData = drawingBoard.toDataURL('image/png');
-        createCharacter(imageData);
-        clearCanvas(drawCtx);
-      } else {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const imageData = canvas.toDataURL('image/png');
-        createCharacter(imageData);
-      }
-    }
-
-    function toggleSketchpad() {
-      isSketchpad = !isSketchpad;
-      video.style.display = isSketchpad ? 'none' : 'block';
-      drawingBoard.style.display = isSketchpad ? 'block' : 'none';
-    }
-
-    function createCharacter(imageData) {
-      const name = prompt("Name your character:");
-      if (!name) return;
-      const character = document.createElement('div');
-      character.className = 'character';
-      character.style.backgroundImage = `url(${imageData})`;
-      character.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
-      character.style.top = `${Math.random() * (window.innerHeight - 150)}px`;
-      charactersContainer.appendChild(character);
-
-      const msg = new SpeechSynthesisUtterance(`You just scanned ${name}! Let's go on an adventure!`);
-      window.speechSynthesis.speak(msg);
-    }
-
-    function clearCanvas(context) {
-      context.clearRect(0, 0, drawingBoard.width, drawingBoard.height);
-    }
-
-    drawingBoard.addEventListener('mousedown', () => isDrawing = true);
-    drawingBoard.addEventListener('mouseup', () => isDrawing = false);
-    drawingBoard.addEventListener('mouseout', () => isDrawing = false);
-    drawingBoard.addEventListener('mousemove', draw);
-
-    function draw(e) {
-      if (!isDrawing) return;
-      const rect = drawingBoard.getBoundingClientRect();
-      drawCtx.fillStyle = '#000';
+    // Drawing logic
+    drawCanvas.addEventListener('pointerdown', (e) => {
+      isDrawing = true;
       drawCtx.beginPath();
-      drawCtx.arc(e.clientX - rect.left, e.clientY - rect.top, 4, 0, Math.PI * 2);
-      drawCtx.fill();
+      drawCtx.moveTo(e.offsetX, e.offsetY);
+    });
+
+    drawCanvas.addEventListener('pointermove', (e) => {
+      if (!isDrawing) return;
+      drawCtx.lineTo(e.offsetX, e.offsetY);
+      drawCtx.strokeStyle = '#000';
+      drawCtx.lineWidth = 4;
+      drawCtx.lineCap = 'round';
+      drawCtx.stroke();
+    });
+
+    drawCanvas.addEventListener('pointerup', () => {
+      isDrawing = false;
+    });
+
+    // Voice feedback
+    function speakFact(name) {
+      const facts = [
+        `Did you know ${name} loves to bounce on clouds?`,
+        `${name} is a legendary explorer of candy lands!`,
+        `Fun fact: ${name} can spin and dance all day long!`
+      ];
+      const fact = facts[Math.floor(Math.random() * facts.length)];
+      const utterance = new SpeechSynthesisUtterance(`You just created ${name}! ${fact}`);
+      speechSynthesis.speak(utterance);
+    }
+
+    // Bring drawing to life
+    spawnBtn.onclick = () => {
+      const name = document.getElementById('charName').value.trim() || 'My Character';
+      const img = new Image();
+      img.src = drawCanvas.toDataURL('image/png');
+      img.className = 'character';
+      img.alt = name;
+
+      // Random start position
+      img.style.top = Math.random() * (window.innerHeight - 120) + 'px';
+      img.style.left = Math.random() * (window.innerWidth - 120) + 'px';
+
+      charactersContainer.appendChild(img);
+
+      // Animate movement
+      animateCharacter(img);
+
+      // Voice feedback
+      speakFact(name);
+    };
+
+    // Movement logic
+    function animateCharacter(el) {
+      let x = parseFloat(el.style.left) || 100;
+      let y = parseFloat(el.style.top) || 100;
+      let dx = (Math.random() - 0.5) * 3;
+      let dy = (Math.random() - 0.5) * 3;
+
+      function move() {
+        x += dx;
+        y += dy;
+
+        // Bounce off edges
+        if (x < 0 || x > window.innerWidth - 100) dx *= -1;
+        if (y < 0 || y > window.innerHeight - 100) dy *= -1;
+
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+
+        requestAnimationFrame(move);
+      }
+
+      move();
+    }
+
+    // Optional: Use back camera (if needed in future)
+    async function setupCamera() {
+      const constraints = {
+        video: {
+          facingMode: { exact: "environment" } // Try back camera
+        }
+      };
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const video = document.getElementById('video');
+        video.srcObject = stream;
+      } catch (err) {
+        console.warn("Back camera not available. Falling back to default.");
+      }
     }
 
     setupCamera();
