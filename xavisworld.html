@@ -3,177 +3,218 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Draw & Bring It to Life!</title>
+  <title>Drawing Comes to Life!</title>
   <style>
     body {
       font-family: 'Comic Sans MS', cursive;
+      background: #fff8dc;
       text-align: center;
-      background: #fdf6e3;
-      overflow: hidden;
       margin: 0;
-      padding: 20px;
+      padding: 0;
     }
-    #video, #canvas {
-      display: none;
+    canvas {
+      border: 5px dashed #ffa500;
+      border-radius: 12px;
+      margin-top: 10px;
+      background: transparent;
+    }
+    #controls {
+      margin: 15px;
     }
     button {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 18px;
-      background: #ffcc70;
+      padding: 12px 20px;
+      font-size: 16px;
+      margin: 5px;
       border: none;
-      border-radius: 10px;
+      border-radius: 20px;
+      background-color: #ffd966;
       cursor: pointer;
     }
-    .character {
+    #animatedDrawing {
       position: absolute;
-      width: 100px;
-      transition: transform 0.3s ease;
-      animation: rotateAndBounce 5s infinite linear;
+      width: 120px;
+      top: 100px;
+      left: 100px;
+      z-index: 999;
+      animation: moveAround 5s linear infinite;
     }
-    @keyframes rotateAndBounce {
-      0% { transform: rotate(0deg) translateY(0); }
-      25% { transform: rotate(15deg) translateY(-20px); }
-      50% { transform: rotate(0deg) translateY(0); }
-      75% { transform: rotate(-15deg) translateY(20px); }
-      100% { transform: rotate(0deg) translateY(0); }
-    }
-    #drawArea {
-      border: 2px dashed #aaa;
-      background: white;
-      touch-action: none;
-    }
-    input, label {
-      font-size: 16px;
-      margin: 10px;
+    @keyframes moveAround {
+      0% { transform: translate(0, 0) rotate(0); }
+      25% { transform: translate(100px, -50px) rotate(15deg); }
+      50% { transform: translate(200px, 50px) rotate(-15deg); }
+      75% { transform: translate(100px, 100px) rotate(10deg); }
+      100% { transform: translate(0, 0) rotate(0); }
     }
   </style>
 </head>
 <body>
 
-  <h1>🎨 Draw & Watch It Come to Life! 🐾</h1>
+  <h1>🎨 Your Drawing Comes to Life!</h1>
 
-  <canvas id="drawArea" width="300" height="300"></canvas><br>
-  <button id="clearBtn">🧽 Clear Drawing</button><br>
+  <div id="controls">
+    <button onclick="startDrawing()">✏️ Draw Mode</button>
+    <button onclick="startCamera()">📷 Camera Mode</button>
+    <button onclick="capture()">🎉 Bring to Life</button>
+    <button onclick="clearCanvas()">🧹 Clear Drawing</button>
+    <button onclick="startVoice()">🎤 Voice Commands</button>
+  </div>
 
-  <label for="charName">Character Name: </label>
-  <input type="text" id="charName" placeholder="e.g. Bouncy Lion" /><br>
-  <button id="spawnBtn">✨ Bring to Life!</button>
+  <video id="video" width="320" height="240" autoplay playsinline style="display:none;"></video>
+  <canvas id="canvas" width="320" height="240"></canvas>
 
-  <canvas id="canvas" width="300" height="300"></canvas>
-  <video id="video" autoplay playsinline></video>
+  <img id="animatedDrawing" style="display:none;" />
 
-  <div id="charactersContainer"></div>
+  <audio id="soundEffect" src="https://cdn.pixabay.com/audio/2022/03/15/audio_303c5ef2f6.mp3" preload="auto"></audio>
 
   <script>
-    const drawCanvas = document.getElementById('drawArea');
-    const drawCtx = drawCanvas.getContext('2d');
-    const spawnBtn = document.getElementById('spawnBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const charactersContainer = document.getElementById('charactersContainer');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const animatedImg = document.getElementById('animatedDrawing');
+    const soundEffect = document.getElementById('soundEffect');
 
-    let isDrawing = false;
+    let drawing = false;
+    let drawMode = true;
 
-    // Drawing logic
-    drawCanvas.addEventListener('pointerdown', (e) => {
-      isDrawing = true;
-      drawCtx.beginPath();
-      drawCtx.moveTo(e.offsetX, e.offsetY);
-    });
-
-    drawCanvas.addEventListener('pointermove', (e) => {
-      if (!isDrawing) return;
-      drawCtx.lineTo(e.offsetX, e.offsetY);
-      drawCtx.strokeStyle = '#000';
-      drawCtx.lineWidth = 4;
-      drawCtx.lineCap = 'round';
-      drawCtx.stroke();
-    });
-
-    drawCanvas.addEventListener('pointerup', () => {
-      isDrawing = false;
-    });
-
-    // Clear drawing
-    clearBtn.onclick = () => {
-      drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-    };
-
-    // Voice feedback
-    function speakFact(name) {
-      const facts = [
-        `Did you know ${name} loves to bounce on clouds?`,
-        `${name} is a legendary explorer of candy lands!`,
-        `Fun fact: ${name} can spin and dance all day long!`
-      ];
-      const fact = facts[Math.floor(Math.random() * facts.length)];
-      const utterance = new SpeechSynthesisUtterance(`You just created ${name}! ${fact}`);
-      speechSynthesis.speak(utterance);
+    // DRAWING MODE
+    function startDrawing() {
+      video.style.display = "none";
+      canvas.style.display = "inline";
+      drawMode = true;
     }
 
-    // Bring drawing to life
-    spawnBtn.onclick = () => {
-      const name = document.getElementById('charName').value.trim() || 'My Character';
-      const img = new Image();
-      img.src = drawCanvas.toDataURL('image/png');
-      img.className = 'character';
-      img.alt = name;
+    canvas.addEventListener('mousedown', () => drawing = true);
+    canvas.addEventListener('mouseup', () => drawing = false);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('touchmove', drawTouch, false);
 
-      // Random start position
-      img.style.top = Math.random() * (window.innerHeight - 120) + 'px';
-      img.style.left = Math.random() * (window.innerWidth - 120) + 'px';
+    function draw(e) {
+      if (!drawing || !drawMode) return;
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#000';
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+    }
 
-      charactersContainer.appendChild(img);
+    function drawTouch(e) {
+      if (!drawMode) return;
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#000';
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
 
-      // Animate movement
-      animateCharacter(img);
+    // CAMERA MODE
+    async function startCamera() {
+      drawMode = false;
+      canvas.style.display = "inline";
+      video.style.display = "inline";
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } }
+      });
+      video.srcObject = stream;
+    }
 
-      // Voice feedback
-      speakFact(name);
-    };
-
-    // Movement logic
-    function animateCharacter(el) {
-      let x = parseFloat(el.style.left) || 100;
-      let y = parseFloat(el.style.top) || 100;
-      let dx = (Math.random() - 0.5) * 3;
-      let dy = (Math.random() - 0.5) * 3;
-
-      function move() {
-        x += dx;
-        y += dy;
-
-        // Bounce off edges
-        if (x < 0 || x > window.innerWidth - 100) dx *= -1;
-        if (y < 0 || y > window.innerHeight - 100) dy *= -1;
-
-        el.style.left = x + 'px';
-        el.style.top = y + 'px';
-
-        requestAnimationFrame(move);
+    // CAPTURE DRAWING
+    function capture() {
+      if (!drawMode) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       }
 
-      move();
+      const imageURL = canvas.toDataURL("image/png");
+      animatedImg.src = imageURL;
+      animatedImg.style.display = "inline";
+
+      speak("Wow! Your drawing came to life!");
+      soundEffect.play();
     }
 
-    // Optional: Use back camera (if needed in future)
-    async function setupCamera() {
-      const constraints = {
-        video: {
-          facingMode: { exact: "environment" }
-        }
+    // CLEAR CANVAS
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      animatedImg.style.display = "none";
+    }
+
+    // VOICE FEEDBACK
+    function speak(text) {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 1;
+      utter.pitch = 1.2;
+      window.speechSynthesis.speak(utter);
+    }
+
+    // VOICE COMMANDS
+    function startVoice() {
+      if (!('webkitSpeechRecognition' in window)) {
+        alert("Sorry, your browser doesn't support voice commands.");
+        return;
+      }
+
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onresult = function(event) {
+        const command = event.results[0][0].transcript.toLowerCase();
+        handleCommand(command);
       };
 
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        const video = document.getElementById('video');
-        video.srcObject = stream;
-      } catch (err) {
-        console.warn("Back camera not available. Falling back to default.");
-      }
+      recognition.start();
+      speak("Listening... Say a command like jump, spin, fly, or dance.");
     }
 
-    setupCamera();
+    function handleCommand(cmd) {
+      soundEffect.play();
+      let anim = "";
+
+      if (cmd.includes("jump")) {
+        anim = "jump 1s infinite alternate";
+      } else if (cmd.includes("spin")) {
+        anim = "spin 2s linear infinite";
+      } else if (cmd.includes("fly")) {
+        anim = "fly 3s ease-in-out infinite";
+      } else if (cmd.includes("dance")) {
+        anim = "dance 0.8s infinite alternate";
+      } else {
+        speak("Sorry, I didn't catch that. Try: jump, spin, fly, or dance.");
+        return;
+      }
+
+      animatedImg.style.animation = anim;
+    }
+
+    // Extra Animations
+    const style = document.createElement("style");
+    style.innerHTML = `
+      @keyframes jump {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-50px); }
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      @keyframes fly {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-100px); }
+      }
+      @keyframes dance {
+        0% { transform: rotate(-10deg); }
+        100% { transform: rotate(10deg); }
+      }
+    `;
+    document.head.appendChild(style);
   </script>
 </body>
 </html>
