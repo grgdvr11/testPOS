@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Step Tracker | Futuristic Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0f2027;
+      --text-color: #00ffcc;
+      --card-color: rgba(255,255,255,0.05);
+      --border-color: #00ffcc;
+    }
+
+    body.light {
+      --bg-color: #f0f0f0;
+      --text-color: #111;
+      --card-color: #ffffff;
+      --border-color: #111;
+    }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      transition: background 0.4s, color 0.4s;
+    }
+
+    header {
+      text-align: center;
+      padding: 1rem;
+      font-size: 1.5rem;
+      background-color: rgba(0,255,204,0.1);
+      border-bottom: 2px solid var(--border-color);
+      position: relative;
+    }
+
+    #toggleTheme {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 1.5rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: var(--text-color);
+    }
+
+    #main {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--card-color);
+      border: 1px solid var(--border-color);
+      padding: 1rem;
+      border-radius: 10px;
+      transition: background 0.4s, border 0.4s;
+    }
+
+    canvas {
+      background: #000;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+    }
+
+    #warning {
+      color: yellow;
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+
+    .step-animate {
+      transition: all 0.2s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    🚶 Futuristic Step Tracker
+    <button id="toggleTheme">🌙</button>
+  </header>
+
+  <div id="main">
+    <div class="card">
+      <div><strong>Date:</strong> <span id="currentDate"></span></div>
+      <div><strong>Today's Steps:</strong> <span id="stepCount" class="step-animate">0</span></div>
+      <div id="warning"></div>
+    </div>
+
+    <div class="card">
+      <h3>📈 Weekly Trend</h3>
+      <canvas id="weeklyChart" width="300" height="150"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>📊 Monthly Trend</h3>
+      <canvas id="monthlyChart" width="300" height="150"></canvas>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const stepCountEl = document.getElementById('stepCount');
+    const currentDateEl = document.getElementById('currentDate');
+    const warningEl = document.getElementById('warning');
+    const toggleThemeBtn = document.getElementById('toggleTheme');
+
+    let stepCount = 0;
+    let lastStepTime = 0;
+    const threshold = 12;
+    const cooldown = 400;
+    const today = new Date().toISOString().split('T')[0];
+    currentDateEl.textContent = today;
+
+    const loadSteps = () => {
+      const saved = JSON.parse(localStorage.getItem('stepData') || '{}');
+      if (saved[today]) stepCount = saved[today];
+      stepCountEl.textContent = stepCount;
+      return saved;
+    };
+
+    const saveSteps = () => {
+      const data = loadSteps();
+      data[today] = stepCount;
+      localStorage.setItem('stepData', JSON.stringify(data));
+    };
+
+    function animateStepCounter(to) {
+      const from = parseInt(stepCountEl.textContent);
+      const duration = 200;
+      const startTime = performance.now();
+
+      function update(time) {
+        const progress = Math.min((time - startTime) / duration, 1);
+        const current = Math.round(from + (to - from) * progress);
+        stepCountEl.textContent = current;
+        if (progress < 1) requestAnimationFrame(update);
+      }
+
+      requestAnimationFrame(update);
+    }
+
+    function motionHandler(event) {
+      const acc = event.accelerationIncludingGravity;
+      if (!acc) return;
+
+      const magnitude = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
+      const now = Date.now();
+
+      if (magnitude > threshold && now - lastStepTime > cooldown) {
+        stepCount++;
+        lastStepTime = now;
+        animateStepCounter(stepCount);
+        saveSteps();
+        updateCharts();
+      }
+    }
+
+    function initMotion() {
+      if (typeof DeviceMotionEvent === "undefined") {
+        warningEl.textContent = "🚫 Motion tracking not supported.";
+        return;
+      }
+
+      if (typeof DeviceMotionEvent.requestPermission === "function") {
+        const ask = () => {
+          const allow = confirm("📱 Allow motion tracking to count your steps?");
+          if (allow) {
+            DeviceMotionEvent.requestPermission().then(response => {
+              if (response === 'granted') {
+                window.addEventListener('devicemotion', motionHandler);
+              } else {
+                warningEl.textContent = "❌ Permission denied for motion tracking.";
+              }
+            }).catch(err => {
+              warningEl.textContent = "⚠️ Error: " + err;
+            });
+          }
+        };
+        window.addEventListener('click', ask, { once: true });
+        warningEl.textContent = "👆 Tap anywhere to start step tracking.";
+      } else {
+        window.addEventListener('devicemotion', motionHandler);
+      }
+    }
+
+    const groupBy = (data, keyFn) => {
+      return Object.entries(data).reduce((acc, [date, count]) => {
+        const key = keyFn(date);
+        acc[key] = (acc[key] || 0) + count;
+        return acc;
+      }, {});
+    };
+
+    const updateCharts = () => {
+      const raw = loadSteps();
+
+      const last7Days = [...Array(7)].map((_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return d.toISOString().split('T')[0];
+      });
+
+      const weeklyData = last7Days.map(d => raw[d] || 0);
+      weeklyChart.data.labels = last7Days;
+      weeklyChart.data.datasets[0].data = weeklyData;
+      weeklyChart.update();
+
+      const monthly = groupBy(raw, d => d.slice(0, 7));
+      const labels = Object.keys(monthly).sort();
+      const values = labels.map(k => monthly[k]);
+
+      monthlyChart.data.labels = labels;
+      monthlyChart.data.datasets[0].data = values;
+      monthlyChart.update();
+    };
+
+    const weeklyChart = new Chart(document.getElementById("weeklyChart"), {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Steps',
+          data: [],
+          borderColor: '#00ffcc',
+          backgroundColor: 'rgba(0,255,204,0.2)',
+          tension: 0.4
+        }]
+      },
+      options: { responsive: true, animation: { duration: 500 }, scales: { y: { beginAtZero: true } } }
+    });
+
+    const monthlyChart = new Chart(document.getElementById("monthlyChart"), {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Total Steps',
+          data: [],
+          backgroundColor: '#00ffcc'
+        }]
+      },
+      options: { responsive: true, animation: { duration: 500 }, scales: { y: { beginAtZero: true } } }
+    });
+
+    // Dark/Light Theme Toggle
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    document.body.classList.toggle('light', currentTheme === 'light');
+    toggleThemeBtn.textContent = currentTheme === 'light' ? '🌙' : '🌞';
+
+    toggleThemeBtn.onclick = () => {
+      document.body.classList.toggle('light');
+      const newTheme = document.body.classList.contains('light') ? 'light' : 'dark';
+      localStorage.setItem('theme', newTheme);
+      toggleThemeBtn.textContent = newTheme === 'light' ? '🌙' : '🌞';
+    };
+
+    // Init
+    loadSteps();
+    updateCharts();
+    initMotion();
+  </script>
+</body>
+</html>
