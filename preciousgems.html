@@ -3,9 +3,851 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PLEASE CONTACT ADMIN</title>
+  <title>PRECIOUS GEMS POS</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background-color: #eb628a;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .datetime-bar {
+      width: 100%;
+      padding: 12px 20px;
+      background: #1e293b;
+      color: #fff;
+      text-align: right;
+      font-size: 1rem;
+    }
+    .container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .left {
+      width: 40%;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    }
+    .right {
+      width: 60%;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    h2 {
+      font-size: 1.5rem;
+      color: #1e293b;
+      margin-bottom: 15px;
+    }
+    .product, .cart-item, .transaction {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      background-color: #E2EAF4;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+#cart {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  max-height: 500px;
+  background-color: #F6F6F7; /* Light background added */
+  padding: 10px;
+  border-radius: 8px;
+}
+    .totals div {
+      font-size: 1.2rem;
+      margin: 8px 0;
+    }
+    #total {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+    input[type="number"], input[type="date"], input[type="text"] {
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      width: 100%;
+      font-size: 1rem;
+    }
+    input[type="number"]#payment {
+      padding: 16px;
+      font-size: 1.4rem;
+      border: 2px solid #ddd;
+    }
+    #change {
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #1e293b;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .actions button {
+      flex: 1 1 calc(50% - 10px);
+      padding: 14px;
+      border: none;
+      background-color: #1e40af;
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.3s;
+      font-size: 1.1rem;
+    }
+    .actions button:hover {
+      background-color: #1d4ed8;
+    }
+    .search input {
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    .history {
+      display: none;
+      margin-top: 15px;
+    }
+    .transaction-details {
+      font-size: 0.95rem;
+      color: #444;
+    }
+    .product button {
+      background-color: #10b981;
+      color: #fff;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-size: 1.1rem;
+    }
+    .product button:hover {
+      background-color: #059669;
+    }
+    #history {
+      max-height: 200px;
+      overflow-y: auto;
+      padding-top: 10px;
+    }
+    .right h2 {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .product-actions button {
+      padding: 16px 24px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      border: none;
+    }
+    .product-actions .add-btn {
+      background-color: #10b981;
+      color: #fff;
+    }
+    .product-actions .add-btn:hover {
+      background-color: #059669;
+    }
+    .product-actions .delete-btn {
+      background-color: #ef4444;
+      color: #fff;
+    }
+    .product-actions .delete-btn:hover {
+      background-color: #dc2626;
+    }
+    .product-actions .edit-btn {
+      background-color: #3b82f6;
+      color: #fff;
+    }
+    .product-actions .edit-btn:hover {
+      background-color: #2563eb;
+    }
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      .left, .right {
+        width: 100%;
+        padding: 10px;
+      }
+      .actions button {
+        flex: 1 1 100%;
+      }
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+    }
+    .modal-content input {
+      margin: 5px 0;
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+    }
+    .modal-content button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .qty-controls button {
+      background-color: #b91c1c;
+      color: #fff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .qty-controls button:hover {
+      background-color: #991b1b;
+    }
+    .qty-display {
+      width: 24px;
+      text-align: center;
+      font-weight: bold;
+    }
 
+#historyModal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 100;
+}
+
+#historyModal > div {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+
+  </style>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+</head>
+<body>
+<div class="datetime-bar">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="font-weight: bold; font-size: 1.1rem;">PRECIOUS GEMS COLLECTION | Point of Sale System</div>
+    <div id="datetime"></div>
+  </div>
+</div>
+<div class="container">  <div class="left">
+    <h2>Current Order</h2>
+    <div id="cart"></div>
+    <div class="totals">
+      <div>Subtotal: <span id="subtotal">0</span></div>
+      <div>Tax (12%): <span id="tax">0</span></div>
+      <div>Total: <span id="total">0</span></div>
+      <div>
+        <label>Payment Amount:</label>
+        <input type="number" id="payment" placeholder="Enter payment">
+      </div>
+      <div>Change: <span id="change">0</span></div>
+    </div>
+
+
+<div class="modal" id="historyModal" style="display: none; justify-content: center; align-items: center;">
+    <div style="background: #fff; padding: 20px; border-radius: 8px; width: 600px; max-height: 90vh; overflow-y: auto;">
+        <h2 style="margin-top: 0;">Transaction History</h2>
+        <div style="margin-bottom: 10px;">
+            <label>From: <input type="date" id="filterDateFrom"></label>
+            <label style="margin-left: 10px;">To: <input type="date" id="filterDateTo"></label>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button style="flex: 1;" onclick="extractCSVByDateRange()">Export CSV (Date Range)</button>
+            <button style="flex: 1;" onclick="clearAllHistory()">Clear History</button>
+        </div>
+        <div id="history" style="max-height: 300px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 6px;"></div>
+        <button onclick="closeHistoryModal()" style="margin-top: 20px; width: 100%;">Close</button>
+    </div>
+</div>
+
+
+
+    <div class="actions">
+      <button onclick="confirmPay()">Confirm & Pay</button>
+      <button onclick="printReceipt()">Print Receipt</button>
+      <button onclick="nextCustomer()">Next Customer</button>
+      <button onclick="toggleHistory()">Transaction History</button>
+      <button onclick="showSalesSummary()">Sales Summary</button>
+      
+
+<div class="modal" id="salesSummaryModal" style="display: none; justify-content: center; align-items: center;">
+    <div style="background: #fff; padding: 20px; border-radius: 8px; width: 500px; max-height: 90vh; overflow-y: auto;">
+        <h2 style="margin-top: 0;">Sales Summary</h2>
+        <div id="salesSummaryContent" style="white-space: pre-wrap; word-wrap: break-word; background: #f9f9f9; padding: 10px; border-radius: 6px; height: 300px; overflow-y: auto;"></div>
+        <button onclick="closeSalesSummaryModal()" style="margin-top: 20px; width: 100%;">Close</button>
+    </div>
+</div>
+
+<button onclick="startScanner()">Scan Barcode</button>
+<div id="scanner" style="display:none;">
+  <div id="reader" style="width: 300px;"></div>
+  <button onclick="stopScanner()">Close Scanner</button>
+</div>
+
+    </div>
+    <div class="history" id="historyContainer">
+      <h3>Transaction History</h3>
+      <label>From: <input type="date" id="filterDateFrom"></label><br>
+      <label>To: <input type="date" id="filterDateTo"></label><br>
+      <button onclick="extractCSVByDateRange()">Export CSV (Date Range)</button>
+      <button onclick="clearAllHistory()">Clear History</button>
+      <div id="history"></div>
+    </div>
+  </div>
+  <div class="right">
+    <h2>Product/Item List</h2>
+    <div class="product-actions" style="display: flex; justify-content: flex-end; gap: 10px; padding: 10px 0;">
+      <button class="add-btn" onclick="openModal()">+ Add New Product</button>
+      <button class="delete-btn" onclick="deleteProductPrompt()">Delete Existing Product</button>
+      <button class="edit-btn" onclick="editProductPrompt()">Edit Existing Product</button>
+      <button class="edit-btn" onclick="addStockPrompt()">Add Stocks</button>
+    </div>
+    <div class="search">
+      <input type="text" id="search" placeholder="Search..." oninput="renderProducts()">
+    </div>
+    <div id="products"></div>
+  </div>
+</div>
+<div class="modal" id="productModal">
+  <div class="modal-content">
+    <h3>Add Product</h3>
+    <input type="text" id="newCode" placeholder="Product Code">
+    <input type="text" id="newName" placeholder="Product Name">
+    <input type="number" id="newPrice" placeholder="Product Price">
+    <button onclick="addNewProduct()">Add Product</button>
+    <button onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<div id="barcodeModal" style="
+  display:none; 
+  position:fixed; 
+  top:0; 
+  left:0; 
+  width:100%; 
+  height:100%; 
+  background:#000000cc; 
+  z-index:9999; 
+  align-items:center; 
+  justify-content:center;
+  padding: 10px;
+  box-sizing: border-box;
+  flex-direction: column;
+">
+  <div style="
+    background:#fff; 
+    padding:15px; 
+    border-radius:10px; 
+    width:100%; 
+    max-width:400px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  ">
+    <h3 style="margin-top:0; font-size:1.2em; text-align:center;">Scan Barcode</h3>
+    <div id="reader" style="width:100%;"></div>
+    <button onclick="closeScanner()" style="
+      width:100%; 
+      margin-top:10px; 
+      padding:10px; 
+      background:#dc3545; 
+      color:white; 
+      border:none; 
+      border-radius:5px;
+      font-size:1em;
+    ">Cancel</button>
+
+<script>
+
+
+let html5QrCode;
+
+function startScanner() {
+    document.getElementById("scanner").style.display = "flex";
+
+    html5QrCode = new Html5Qrcode("reader");
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        {
+            fps: 10,
+            qrbox: { width: 250, height: 250 }
+        },
+        (decodedText) => {
+            // Auto-stop after scan
+            html5QrCode.stop().then(() => {
+                document.getElementById("scanner").style.display = "none";
+
+                handleBarcode(decodedText);
+            }).catch(err => console.error("Stop failed", err));
+        },
+        (errorMsg) => {
+            // console.log(`Scan error: ${errorMsg}`);
+        }
+    ).catch(err => {
+        console.error("Start failed", err);
+    });
+}
+
+function stopScanner() {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            document.getElementById("scanner").style.display = "none";
+        }).catch(err => console.error("Stop failed", err));
+    }
+}
+
+function handleBarcode(code) {
+  const cleanCode = code.trim().toString();
+  const found = products.find(p => p.code === cleanCode);
+  if (found) {
+    addToCart(found.code);
+  } else {
+    alert("Product not found for barcode: " + cleanCode);
+const found = products.find(p => p.code === code.trim());
+
+  }
+}
+
+
+function onScanSuccess(decodedText, decodedResult) {
+    const scannedCode = decodedText.trim();
+    console.log("Scanned code:", scannedCode);
+
+    const product = products.find(p => p.code === scannedCode);
+
+    if (product) {
+        addToCart(product);
+    } else {
+        alert("❌ Product not found for barcode: " + scannedCode);
+    }
+}
+
+
+
+
+  function showSalesSummary() {
+    if (!history.length) return alert("No transactions recorded.");
+    const summary = {};
+    let totalSales = 0;
+
+    history.forEach(tx => {
+        tx.items.forEach(item => {
+            if (!summary[item.name]) {
+                summary[item.name] = { qty: 0, total: 0 };
+            }
+            summary[item.name].qty += item.qty;
+            summary[item.name].total += item.qty * item.price;
+            totalSales += item.qty * item.price;
+        });
+    });
+
+    let message = "";
+    for (const [name, data] of Object.entries(summary)) {
+        message += `${name} - Quantity Sold: ${data.qty} | Sales: ${formatNumber(data.total)}\n`;
+    }
+    message += `\n------------------------\n`;
+    message += `<span style="font-size: 1.4rem; font-weight: bold;">Total Sales Amount: ${formatNumber(totalSales)}</span>`;
+
+    document.getElementById('salesSummaryContent').innerHTML = message;
+    document.getElementById('salesSummaryModal').style.display = 'flex';
+}
+
+
+
+
+
+const defaultProducts = [
+  { code: "4800000000013", name: "Biogesic Tablet 500mg", price: 6.50, stock: 100 },
+  { code: "4800000000020", name: "Biogesic Caplet 500mg", price: 5.53, stock: 100 },
+  { code: "4800000000037", name: "Tempra Syrup 120ml", price: 241.48, stock: 50 },
+  { code: "4800000000044", name: "Calpol Syrup 120ml", price: 240.50, stock: 50 },
+  { code: "4800000000051", name: "Alaxan FR Capsule", price: 11.05, stock: 100 },
+  { code: "4800000000068", name: "Dolfenal Tablet", price: 23.40, stock: 100 },
+  { code: "4800000000075", name: "Neozep Forte Tablet", price: 7.80, stock: 100 },
+  { code: "4800000000082", name: "Decolgen Forte Tablet", price: 7.80, stock: 100 },
+  { code: "4800000000099", name: "Solmux Capsule", price: 17.39, stock: 100 },
+  { code: "4800000000105", name: "Solmux Syrup 60ml", price: 173.82, stock: 50 },
+  { code: "4800000000112", name: "Robitussin Syrup 120ml", price: 223.21, stock: 50 },
+  { code: "4800000000129", name: "Tuseran Forte Capsule", price: 16.65, stock: 100 },
+  { code: "4800000000136", name: "Kremil-S Tablet", price: 2.60, stock: 100 },
+  { code: "4800000000143", name: "Diatabs Capsule", price: 3.90, stock: 100 },
+  { code: "4800000000150", name: "Buscopan Tablet", price: 9.10, stock: 100 },
+  { code: "4800000000167", name: "Motilium Tablet", price: 10.40, stock: 100 },
+  { code: "4800000000174", name: "Allerkid Syrup 60ml", price: 130.00, stock: 50 },
+  { code: "4800000000181", name: "Claritin Tablet", price: 14.30, stock: 100 },
+  { code: "4800000000198", name: "Virlix Tablet", price: 47.67, stock: 100 },
+  { code: "4800000000204", name: "Benadryl Syrup 60ml", price: 175.50, stock: 50 },
+  { code: "4800000000211", name: "Enervon Tablet", price: 5.20, stock: 200 },
+  { code: "4800000000228", name: "Revicon Tablet", price: 6.50, stock: 200 },
+  { code: "4800000000235", name: "Ceelin Syrup 60ml", price: 130.00, stock: 50 },
+  { code: "4800000000242", name: "Cherifer Capsule", price: 7.80, stock: 200 },
+  { code: "4800000000259", name: "Cherifer Syrup 200ml", price: 247.00, stock: 50 },
+  { code: "4800000000266", name: "Nutrilin Syrup 200ml", price: 195.00, stock: 50 },
+  { code: "4800000000273", name: "Katinko Ointment", price: 71.50, stock: 50 },
+  { code: "4800000000280", name: "Efficascent Oil 60ml", price: 104.00, stock: 50 }
+];
+
+
+
+  let products = JSON.parse(localStorage.getItem('products')) || defaultProducts;
+  products = products.map(p => ({ ...p, code: p.code.trim().toString() }));
+
+
+  function saveProducts() {
+    localStorage.setItem('products', JSON.stringify(products));
+  }
+  function openModal() { document.getElementById('productModal').style.display = 'flex'; }
+  function closeModal() { document.getElementById('productModal').style.display = 'none'; }
+  function addNewProduct() {
+    const code = document.getElementById('newCode').value.trim();
+    const name = document.getElementById('newName').value.trim();
+    const price = parseFloat(document.getElementById('newPrice').value.trim());
+    if (!code || !name || isNaN(price)) { alert('Complete all fields correctly.'); return; }
+    products.push({ code, name, price });
+    saveProducts();
+    renderProducts();
+    closeModal();
+    document.getElementById('newCode').value = '';
+    document.getElementById('newName').value = '';
+    document.getElementById('newPrice').value = '';
+  }
+  function deleteProductPrompt() {
+    const code = prompt("Enter the Product Code to delete:");
+    if (!code) return;
+    products = products.filter(p => p.code !== code);
+    saveProducts();
+    renderProducts();
+  }
+  function editProductPrompt() {
+    const code = prompt("Enter the Product Code to edit:");
+    if (!code) return;
+    const product = products.find(p => p.code === code);
+    if (!product) return alert("Product not found.");
+    const newName = prompt("Enter new Product Name:", product.name);
+    const newPrice = parseFloat(prompt("Enter new Product Price:", product.price));
+    if (!newName || isNaN(newPrice)) return alert("Invalid name or price.");
+    product.name = newName;
+    product.price = newPrice;
+    saveProducts();
+    renderProducts();
+    alert("Product updated successfully.");
+  }
+  function updateDateTime() {
+    const now = new Date();
+    document.getElementById('datetime').textContent = now.toLocaleString();
+  }
+  setInterval(updateDateTime, 1000);
+  updateDateTime();
+  function formatNumber(num) {
+    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  let cart = [];
+  let history = JSON.parse(localStorage.getItem('transactionHistory')) || [];
+  let usedReferences = new Set(history.map(h => h.reference));
+  function generateUniqueReference() {
+    let ref;
+    do { ref = 'REF-' + Math.floor(10000 + Math.random() * 90000); } while (usedReferences.has(ref));
+    usedReferences.add(ref);
+    return ref;
+  }
+
+function renderProducts() {
+    const search = document.getElementById("search").value.toLowerCase();
+    const container = document.getElementById("products");
+    container.innerHTML = "";
+    products.filter(p => p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search))
+    .forEach(p => {
+        const stockStatus = p.stock <= 5 ? `<span style="color: red;">Low (${p.stock})</span>` : `<span style="color: green;">High (${p.stock})</span>`;
+        const disabled = p.stock <= 0 ? "disabled" : "";
+        const div = document.createElement("div");
+        div.className = "product";
+        div.innerHTML = `<div><strong>${p.name}</strong><br/>Code: ${p.code}<br/>Price: ${formatNumber(p.price)}<br/>Stock: ${stockStatus}</div><button ${disabled} onclick="addToCart('${p.code}')">Add</button>`;
+        container.appendChild(div);
+    });
+}
+
+
+function addToCart(code) {
+    const item = products.find(p => p.code === code);
+    if (!item || item.stock <= 0) return alert("Out of stock.");
+    const existing = cart.find(c => c.code === code);
+    if (existing) {
+        if (existing.qty < item.stock) {
+            existing.qty++;
+        } else {
+            alert("No more stocks available.");
+        }
+    } else {
+        cart.push({ ...item, qty: 1 });
+    }
+    renderCart();
+} 
+
+  function renderCart() {
+    const container = document.getElementById("cart");
+    container.innerHTML = "";
+    let subtotal = 0;
+    cart.forEach(item => {
+      subtotal += item.price * item.qty;
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.innerHTML = `
+        <div>${item.name} - Php ${formatNumber(item.price)}</div>
+        <div class="qty-controls">
+          <button onclick="decreaseQty('${item.code}')">-</button>
+          <div class="qty-display">${item.qty}</div>
+          <button onclick="increaseQty('${item.code}')">+</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+    const vat = subtotal * 0.12;
+    const total = subtotal + vat;
+    document.getElementById("subtotal").textContent = formatNumber(subtotal);
+    document.getElementById("tax").textContent = formatNumber(vat);
+    document.getElementById("total").textContent = formatNumber(total);
+    updateChange();
+  }
+  function increaseQty(code) {
+    const item = cart.find(c => c.code === code);
+    if (item) {
+      item.qty++;
+      renderCart();
+    }
+  }
+  function decreaseQty(code) {
+    const item = cart.find(c => c.code === code);
+    if (item && item.qty > 1) {
+      item.qty--;
+    } else {
+      cart = cart.filter(c => c.code !== code);
+    }
+    renderCart();
+  }
+  function updateChange() {
+    const payment = parseFloat(document.getElementById("payment").value) || 0;
+    const total = parseFloat(document.getElementById("total").textContent.replace(/,/g, ''));
+    const change = payment - total;
+    document.getElementById("change").textContent = change >= 0 ? formatNumber(change) : "0.00";
+  }
+  document.getElementById("payment").addEventListener("input", updateChange);
+ 
+function confirmPay() {
+    const payment = parseFloat(document.getElementById("payment").value) || 0;
+    const total = parseFloat(document.getElementById("total").textContent.replace(/,/g, ''));
+    if (payment < total) return alert("Insufficient payment.");
+
+    // Deduct stocks
+    cart.forEach(item => {
+        const product = products.find(p => p.code === item.code);
+        if (product) {
+            product.stock = (product.stock || 0) - item.qty;
+        }
+    });
+    saveProducts();
+
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
+    const time = now.toLocaleTimeString();
+    const reference = generateUniqueReference();
+    const transaction = { reference, date, time, items: [...cart], total, payment, change: payment - total };
+    history.push(transaction);
+    localStorage.setItem('transactionHistory', JSON.stringify(history));
+    renderHistory();
+    renderProducts();
+    alert(`Payment confirmed.\nReference #: ${reference}`);
+    nextCustomer();
+}
+
+function renderHistory() {
+    const container = document.getElementById("history");
+    container.innerHTML = "";
+    history.slice().reverse().forEach(tx => {
+        const div = document.createElement("div");
+        div.className = "transaction";
+
+        const taxRate = 0.12;
+        const taxAmount = tx.total * taxRate / (1 + taxRate); // Extract tax from total
+        const subTotal = tx.total - taxAmount;
+
+        div.innerHTML = `
+            <div>
+                <strong>${tx.reference}</strong><br/>
+                ${tx.date} ${tx.time}
+                <br/>
+                <div class="transaction-details">
+                    ${tx.items.map(i => `${i.name} (${formatNumber(i.price)} x ${i.qty}) = ${formatNumber(i.price * i.qty)}`).join("<br/>")}
+                    <br/>Subtotal: ${formatNumber(subTotal)}
+                    <br/>Tax (12%): ${formatNumber(taxAmount)}
+                    <br/>Total: ${formatNumber(tx.total)}
+                    <br/>Paid: ${formatNumber(tx.payment)} | Change: ${formatNumber(tx.change)}
+                </div>
+                <button onclick="voidTransaction('${tx.reference}')">Void This Transaction</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+
+function voidTransaction(reference) {
+    if (!confirm(`Are you sure you want to void transaction ${reference}?`)) return;
+    history = history.filter(tx => tx.reference !== reference);
+    localStorage.setItem('transactionHistory', JSON.stringify(history));
+    renderHistory();
+    alert(`Transaction ${reference} has been voided.`);
+}
+
+  function printReceipt() {
+    if (!history.length) return alert("No transaction to print.");
+    const tx = history[history.length - 1];
+    let receipt = `<div style="font-family: Arial; width: 280px; font-size: 12px;"><h3 style="text-align: center;">PRECIOUS GEMS COLLECTION</h3><p style="text-align: center;">Contact: 123 456 7890</p><p style="text-align: center;">Date: ${tx.date} ${tx.time}</p><hr/><table style="width: 100%; border-collapse: collapse;"><thead><tr><th align="left">Item</th><th align="right">Price</th><th align="right">Qty</th><th align="right">Total</th></tr></thead><tbody>${tx.items.map(i => `<tr><td>${i.name}</td><td align="right">${formatNumber(i.price)}</td><td align="right">${i.qty}</td><td align="right">${formatNumber(i.qty * i.price)}</td></tr>`).join('')}</tbody></table><hr/><table style="width: 100%; text-align: right;"><tr><td>Total:</td><td>${formatNumber(tx.total)}</td></tr><tr><td>Payment:</td><td>${formatNumber(tx.payment)}</td></tr><tr><td>Change:</td><td>${formatNumber(tx.change)}</td></tr></table><p style="text-align: center;">Thank you!</p></div>`;
+    const w = window.open("", "Print Receipt");
+    w.document.write(`<html><head><title>Receipt</title></head><body onload="window.print(); window.close();">${receipt}</body></html>`);
+    w.document.close();
+  }
+
+  function nextCustomer() {
+ // Force full reload (bypasses cache)
+      window.location.href = window.location.href.split('?')[0] + '?_=' + new Date().getTime();
+    
+  }
+
+
+
+function toggleHistory() {
+    const modal = document.getElementById('historyModal');
+    modal.style.display = 'flex';
+    renderHistory();
+}
+function closeHistoryModal() {
+    document.getElementById('historyModal').style.display = 'none';
+}
+
+
+  function clearAllHistory() {
+    if (confirm("Are you sure to clear all history?")) {
+      history = [];
+      localStorage.removeItem('transactionHistory');
+      renderHistory();
+    }
+  }
+
+
+function extractCSVByDateRange() {
+    const from = document.getElementById("filterDateFrom").value;
+    const to = document.getElementById("filterDateTo").value;
+    if (!from || !to) return alert("Select from and to dates.");
+
+    const filtered = history.filter(tx => tx.date >= from && tx.date <= to);
+    if (filtered.length === 0) return alert("No transactions found in this date range.");
+
+    let csvContent = "Reference,Date,Time,Item,Price,Qty,Item Total,Subtotal,Tax,Total,Payment,Change\n";
+    const taxRate = 0.12;
+
+    filtered.forEach(tx => {
+        const taxAmount = tx.total * taxRate / (1 + taxRate);
+        const subTotal = tx.total - taxAmount;
+
+        tx.items.forEach((item, index) => {
+            const itemTotal = item.price * item.qty;
+            csvContent += [
+                index === 0 ? tx.reference : "",
+                index === 0 ? tx.date : "",
+                index === 0 ? tx.time : "",
+                item.name,
+                item.price,
+                item.qty,
+                itemTotal,
+                index === 0 ? subTotal.toFixed(2) : "",
+                index === 0 ? taxAmount.toFixed(2) : "",
+                index === 0 ? tx.total.toFixed(2) : "",
+                index === 0 ? tx.payment.toFixed(2) : "",
+                index === 0 ? tx.change.toFixed(2) : ""
+            ].join(",") + "\n";
+        });
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Transaction_History_${from}_to_${to}.csv`;
+    link.click();
+}
+
+
+
+function closeSalesSummaryModal() {
+    document.getElementById('salesSummaryModal').style.display = 'none';
+}
+
+
+
+
+
+
+
+
+
+function addStockPrompt() {
+    const code = prompt("Enter the Product Code to add stocks:");
+    if (!code) return;
+    const product = products.find(p => p.code === code);
+    if (!product) return alert("Product not found.");
+    const additionalStock = parseInt(prompt("Enter number of stocks to add:"), 10);
+    if (isNaN(additionalStock) || additionalStock <= 0) return alert("Invalid stock count.");
+    product.stock = (product.stock || 0) + additionalStock;
+    saveProducts();
+    renderProducts();
+    alert(`Stock for ${product.name} is now ${product.stock}`);
+}
+
+
+
+  renderProducts();
+  renderCart();
+  updateDateTime();
+  setInterval(updateDateTime, 1000);
 </script>
 </body>
 </html>
-
