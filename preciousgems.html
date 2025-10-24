@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PRECIOUS GEMS POS</title>
+  <title>PRECIOUS GEMS COLLECTION POS</title>
   <style>
     * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
       margin: 0;
-      background-color: #eb628a;
+      background: linear-gradient(to right, #5454C5, #CB67B7);
       color: #333;
       display: flex;
       flex-direction: column;
@@ -18,7 +18,7 @@
     .datetime-bar {
       width: 100%;
       padding: 12px 20px;
-      background: #1e293b;
+      background: linear-gradient(to right, #5454C5, #CB67B7);
       color: #fff;
       text-align: right;
       font-size: 1rem;
@@ -55,15 +55,15 @@
       margin-bottom: 10px;
       align-items: center;
     }
-#cart {
-  flex-grow: 1;
-  overflow-y: auto;
-  margin-bottom: 10px;
-  max-height: 500px;
-  background-color: #F6F6F7; /* Light background added */
-  padding: 10px;
-  border-radius: 8px;
-}
+    #cart {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      max-height: 500px;
+      background-color: #F6F6F7;
+      padding: 10px;
+      border-radius: 8px;
+    }
     .totals div {
       font-size: 1.2rem;
       margin: 8px 0;
@@ -99,7 +99,7 @@
       flex: 1 1 calc(50% - 10px);
       padding: 14px;
       border: none;
-      background-color: #1e40af;
+      background-color: #6B6BCB;
       color: #fff;
       border-radius: 6px;
       cursor: pointer;
@@ -125,7 +125,7 @@
       color: #444;
     }
     .product button {
-      background-color: #10b981;
+      background-color: #6B6BCB;
       color: #fff;
       padding: 10px 16px;
       border: none;
@@ -156,25 +156,25 @@
       border: none;
     }
     .product-actions .add-btn {
-      background-color: #10b981;
+      background-color: #5429B9;
       color: #fff;
     }
     .product-actions .add-btn:hover {
       background-color: #059669;
     }
     .product-actions .delete-btn {
-      background-color: #ef4444;
+      background-color:#5429B9;
       color: #fff;
     }
     .product-actions .delete-btn:hover {
-      background-color: #dc2626;
+      background-color: #5429B9;
     }
     .product-actions .edit-btn {
-      background-color: #3b82f6;
+      background-color: #5429B9;
       color: #fff;
     }
     .product-actions .edit-btn:hover {
-      background-color: #2563eb;
+      background-color: #5429B9;
     }
     @media (max-width: 768px) {
       .container {
@@ -202,7 +202,9 @@
       background: white;
       padding: 20px;
       border-radius: 8px;
-      width: 300px;
+      width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
     }
     .modal-content input {
       margin: 5px 0;
@@ -238,29 +240,104 @@
       font-weight: bold;
     }
 
-#historyModal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    z-index: 100;
-}
+    /* customer modal style */
+    #customerModal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    #customerModal > div {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    #customerTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    #customerTable th, #customerTable td {
+      border: 1px solid #e6e6e6;
+      padding: 8px;
+      text-align: left;
+    }
+    #customerTable th {
+      background: #f3f4f6;
+    }
+    .select-cust-btn {
+      background: #10b981;
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .select-cust-btn:hover { background: #059669; }
 
-#historyModal > div {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
+    /* last transaction summary style (minimal) */
+    #lastTransactionSummary {
+      background: #ffffff;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 12px;
+      border: 1px solid #e6e6e6;
+      display: none;
+      font-size: 0.95rem;
+    }
 
-
+    /* History modal (used by Transaction History button) */
+    #historyModal {
+      display: none;
+      position: fixed;
+      z-index: 150;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    #historyModal > div {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    }
+    #historyTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    #historyTable th, #historyTable td {
+      border: 1px solid #e6e6e6;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    #historyTable th {
+      background: #f3f4f6;
+    }
+    .history-controls { display:flex; gap:8px; margin-bottom:12px; align-items:center; }
+    .history-controls input[type="date"] { width: 160px; }
+    .history-controls button { padding:8px 12px; border-radius:6px; border:none; cursor:pointer; background:#1e40af; color:#fff; }
+    .history-controls button.secondary { background:#ef4444; }
+    .history-controls button.ghost { background:#6b7280; }
   </style>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 <body>
@@ -272,10 +349,23 @@
 </div>
 <div class="container">  <div class="left">
     <h2>Current Order</h2>
+
+    <!-- CUSTOMER INFO SECTION -->
+    <div style="background:#f6f7fb; padding:10px; border-radius:8px; margin-bottom:12px;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <input type="text" id="customerName" placeholder="Customer Name" style="flex:1; min-width:160px;">
+        <input type="text" id="customerMobile" placeholder="Mobile Number" style="flex:1; min-width:140px;">
+        <input type="text" id="customerAddress" placeholder="Address" style="flex:2; min-width:200px;">
+        <button onclick="openCustomerModal()" style="align-self:center; padding:14px 12px; border-radius:6px; font-size:1rem; background:#6B6BCB; color:#fff; border:none; cursor:pointer;">Select Existing Customer</button>
+      </div>
+      <div style="font-size:0.85rem; color:#555; margin-top:8px;">Tip: Use "Select Existing Customer" to autofill returning customer details.</div>
+    </div>
+    <!-- END CUSTOMER INFO SECTION -->
+
     <div id="cart"></div>
     <div class="totals">
       <div>Subtotal: <span id="subtotal">0</span></div>
-      <div>Tax (12%): <span id="tax">0</span></div>
+      <div>Tax (0%): <span id="tax">0</span></div>
       <div>Total: <span id="total">0</span></div>
       <div>
         <label>Payment Amount:</label>
@@ -284,24 +374,9 @@
       <div>Change: <span id="change">0</span></div>
     </div>
 
-
-<div class="modal" id="historyModal" style="display: none; justify-content: center; align-items: center;">
-    <div style="background: #fff; padding: 20px; border-radius: 8px; width: 600px; max-height: 90vh; overflow-y: auto;">
-        <h2 style="margin-top: 0;">Transaction History</h2>
-        <div style="margin-bottom: 10px;">
-            <label>From: <input type="date" id="filterDateFrom"></label>
-            <label style="margin-left: 10px;">To: <input type="date" id="filterDateTo"></label>
-        </div>
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <button style="flex: 1;" onclick="extractCSVByDateRange()">Export CSV (Date Range)</button>
-            <button style="flex: 1;" onclick="clearAllHistory()">Clear History</button>
-        </div>
-        <div id="history" style="max-height: 300px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 6px;"></div>
-        <button onclick="closeHistoryModal()" style="margin-top: 20px; width: 100%;">Close</button>
-    </div>
-</div>
-
-
+    <!-- LAST TRANSACTION SUMMARY (appended after confirm & pay) -->
+    <div id="lastTransactionSummary"></div>
+    <!-- END LAST TRANSACTION SUMMARY -->
 
     <div class="actions">
       <button onclick="confirmPay()">Confirm & Pay</button>
@@ -309,32 +384,102 @@
       <button onclick="nextCustomer()">Next Customer</button>
       <button onclick="toggleHistory()">Transaction History</button>
       <button onclick="showSalesSummary()">Sales Summary</button>
-      
-
-<div class="modal" id="salesSummaryModal" style="display: none; justify-content: center; align-items: center;">
-    <div style="background: #fff; padding: 20px; border-radius: 8px; width: 500px; max-height: 90vh; overflow-y: auto;">
-        <h2 style="margin-top: 0;">Sales Summary</h2>
-        <div id="salesSummaryContent" style="white-space: pre-wrap; word-wrap: break-word; background: #f9f9f9; padding: 10px; border-radius: 6px; height: 300px; overflow-y: auto;"></div>
-        <button onclick="closeSalesSummaryModal()" style="margin-top: 20px; width: 100%;">Close</button>
-    </div>
-</div>
-
-<button onclick="startScanner()">Scan Barcode</button>
-<div id="scanner" style="display:none;">
-  <div id="reader" style="width: 300px;"></div>
-  <button onclick="stopScanner()">Close Scanner</button>
-</div>
+      <button onclick="openExpenseModal()">Expense Tracker</button>
 
     </div>
-    <div class="history" id="historyContainer">
+
+    <div class="history" id="historyContainer" style="display:none;">
       <h3>Transaction History</h3>
-      <label>From: <input type="date" id="filterDateFrom"></label><br>
-      <label>To: <input type="date" id="filterDateTo"></label><br>
+      <label>From: <input type="date" id="filterDateFrom2"></label><br>
+      <label>To: <input type="date" id="filterDateTo2"></label><br>
       <button onclick="extractCSVByDateRange()">Export CSV (Date Range)</button>
       <button onclick="clearAllHistory()">Clear History</button>
-      <div id="history"></div>
+      <div id="historyList"></div>
     </div>
   </div>
+
+
+
+<div id="expenseModal" class="modal">
+  <div class="modal-content">
+    <h2>Expense Tracker</h2>
+
+<div id="expenseSummary" style="margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; background:#f5f5f5;">
+    <strong>Total Sales:</strong> ₱<span id="summarySales">0.00</span> &nbsp;|&nbsp;
+    <strong>Total Expenses:</strong> ₱<span id="summaryExpenses">0.00</span> &nbsp;|&nbsp;
+    <strong>Profit / Loss:</strong> ₱<span id="summaryProfit">0.00</span>
+    &nbsp;&nbsp;
+    <button onclick="updateProfitSummary()" style="padding:2px 6px; font-size:12px;">Refresh</button>
+</div>
+
+
+    
+    <!-- Add/Edit Expense Form -->
+    <form id="expenseForm">
+      <label>Date: <input type="date" id="expenseDate" required></label>
+      <label>Category:
+        <select id="expenseCategory">
+          <option>Groceries</option>
+          <option>Electricity</option>
+          <option>Utilities</option>
+          <option>Housing</option>
+          <option>Insurance</option>
+          <option>Transportation</option>
+          <option>Others</option>
+        </select>
+      </label>
+      <label>Description: <input type="text" id="expenseDescription" required></label>
+      <label>Amount: <input type="number" id="expenseAmount" step="0.01" required></label>
+      <button type="submit">Add / Update</button>
+      <input type="hidden" id="editingIndex" value="">
+    </form>
+    
+    <!-- Export / filter / total -->
+    <div style="margin-top:10px;">
+      <button onclick="exportExpensesCSV()">Export CSV</button>
+      <label>View:
+        <select id="expenseFilter">
+          <option value="all">All</option>
+          <option value="daily">Today</option>
+          <option value="weekly">This Week</option>
+          <option value="monthly">This Month</option>
+          <option value="yearly">This Year</option>
+        </select>
+      </label>
+      <span style="margin-left:20px;">Total: ₱<span id="expenseTotal">0.00</span></span>
+    </div>
+    
+    <!-- Expenses Table -->
+    <table border="1" width="100%" style="margin-top:10px; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Category</th>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="expenseTableBody"></tbody>
+    </table>
+
+    <button onclick="closeExpenseModal()">Close</button>
+  </div>
+</div>
+
+
+
+<div id="salesSummaryModal" class="modal">
+  <div class="modal-content">
+    <h2>Sales Summary</h2>
+    <canvas id="salesChart" style="max-width:100%; height:300px;"></canvas>
+    <div id="salesSummaryContent"></div>
+    <button onclick="closeSalesSummary()">Close</button>
+  </div>
+</div>
+
+
+
   <div class="right">
     <h2>Product/Item List</h2>
     <div class="product-actions" style="display: flex; justify-content: flex-end; gap: 10px; padding: 10px 0;">
@@ -349,6 +494,8 @@
     <div id="products"></div>
   </div>
 </div>
+
+<!-- Product Modal -->
 <div class="modal" id="productModal">
   <div class="modal-content">
     <h3>Add Product</h3>
@@ -360,6 +507,66 @@
   </div>
 </div>
 
+<!-- Customer Selection Modal -->
+<div id="customerModal" class="modal">
+  <div class="modal-content">
+    <h2 style="margin-top:0;">Select Existing Customer</h2>
+<input type="text" id="customerSearch" placeholder="Search by name, mobile, or address">
+
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <input type="text" id="customerSearch" placeholder="Search by name, mobile or address" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px;">
+      <button onclick="closeCustomerModal()" style="padding:8px 10px; background:#ef4444; color:#fff; border:none; border-radius:6px;">Close</button>
+    </div>
+    <table id="customerTable">
+      <thead>
+        <tr><th>Name</th><th>Mobile</th><th>Address</th><th>Action</th></tr>
+      </thead>
+      <tbody id="customerTableBody" style="background:#fff;"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- History Modal (opened by Transaction History button) -->
+<div id="historyModal" class="modal">
+  <div>
+    <div class="modal-content">
+      <h2 style="margin-top:0; display:flex; justify-content:space-between; align-items:center;">
+        <span>Transaction History</span>
+        <button onclick="closeHistoryModal()" style="background:#ef4444; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">Close</button>
+      </h2>
+
+      <div class="history-controls" style="margin-bottom:10px;">
+        <label>From: <input type="date" id="filterDateFrom"></label>
+        <label>To: <input type="date" id="filterDateTo"></label>
+        <button onclick="applyFilterAndRender()">Filter</button>
+        <button onclick="extractCSVByDateRange()">Export CSV</button>
+        <button class="secondary" onclick="clearAllHistory()">Clear History</button>
+      </div>
+
+      <div style="max-height:60vh; overflow:auto;">
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Date / Time</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Subtotal</th>
+              <th>Tax</th>
+              <th>Total</th>
+              <th>Paid</th>
+              <th>Change</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Barcode modal -->
 <div id="barcodeModal" style="
   display:none; 
   position:fixed; 
@@ -373,7 +580,6 @@
   justify-content:center;
   padding: 10px;
   box-sizing: border-box;
-  flex-direction: column;
 ">
   <div style="
     background:#fff; 
@@ -384,8 +590,8 @@
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
   ">
     <h3 style="margin-top:0; font-size:1.2em; text-align:center;">Scan Barcode</h3>
-    <div id="reader" style="width:100%;"></div>
-    <button onclick="closeScanner()" style="
+    <div id="reader" style="width:100%; height:300px;"></div>
+    <button onclick="closeBarcodeModal()" style="
       width:100%; 
       margin-top:10px; 
       padding:10px; 
@@ -395,47 +601,776 @@
       border-radius:5px;
       font-size:1em;
     ">Cancel</button>
+  </div>
+</div>
 
 <script>
+/* ---------- Utilities ---------- */
+function escapeHtml(text) {
+  if (text === undefined || text === null) return '';
+  return String(text).replace(/[&<>"'`=\/]/g, function (s) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'})[s];
+  });
+}
+
+/* ---------- DateTime ---------- */
+function updateDateTime() {
+  const now = new Date();
+  document.getElementById('datetime').textContent = now.toLocaleString();
+}
+setInterval(updateDateTime, 1000);
+updateDateTime();
+
+/* ---------- Number formatting ---------- */
+function formatNumber(num) {
+  return Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/* ---------- Products ---------- */
+const defaultProducts = [
+  { code: "PRD1", name: "Product 1", price: 199.00, stock: 120 },
+  { code: "PRD2", name: "Product 2", price: 249.50, stock: 85 },
+  { code: "PRD3", name: "Product 3", price: 310.00, stock: 60 },
+  { code: "PRD4", name: "Product 4", price: 175.75, stock: 140 },
+  { code: "PRD5", name: "Product 5", price: 289.00, stock: 95 },
+  { code: "PRD6", name: "Product 6", price: 205.25, stock: 110 },
+  { code: "PRD7", name: "Product 7", price: 399.00, stock: 70 },
+  { code: "PRD8", name: "Product 8", price: 150.00, stock: 200 },
+  { code: "PRD9", name: "Product 9", price: 330.50, stock: 55 },
+  { code: "PRD10", name: "Product 10", price: 275.00, stock: 100 }
+];
 
 
-let html5QrCode;
+let products = JSON.parse(localStorage.getItem('products')) || defaultProducts;
+products = products.map(p => ({ ...p, code: p.code.trim().toString() }));
+function saveProducts() { localStorage.setItem('products', JSON.stringify(products)); }
 
-function startScanner() {
-    document.getElementById("scanner").style.display = "flex";
+/* Product modal functions */
+function openModal() { document.getElementById('productModal').style.display = 'flex'; }
+function closeModal() { document.getElementById('productModal').style.display = 'none'; }
+function addNewProduct() {
+  const code = document.getElementById('newCode').value.trim();
+  const name = document.getElementById('newName').value.trim();
+  const price = parseFloat(document.getElementById('newPrice').value.trim());
+  if (!code || !name || isNaN(price)) { alert('Complete all fields correctly.'); return; }
+  products.push({ code, name, price, stock: 0 });
+  saveProducts();
+  renderProducts();
+  closeModal();
+  document.getElementById('newCode').value = '';
+  document.getElementById('newName').value = '';
+  document.getElementById('newPrice').value = '';
+}
+function deleteProductPrompt() {
+  const code = prompt("Enter the Product Code to delete:");
+  if (!code) return;
+  products = products.filter(p => p.code !== code);
+  saveProducts();
+  renderProducts();
+}
+function editProductPrompt() {
+  const code = prompt("Enter the Product Code to edit:");
+  if (!code) return;
+  const product = products.find(p => p.code === code);
+  if (!product) return alert("Product not found.");
+  const newName = prompt("Enter new Product Name:", product.name);
+  const newPrice = parseFloat(prompt("Enter new Product Price:", product.price));
+  if (!newName || isNaN(newPrice)) return alert("Invalid name or price.");
+  product.name = newName;
+  product.price = newPrice;
+  saveProducts();
+  renderProducts();
+  alert("Product updated successfully.");
+}
 
-    html5QrCode = new Html5Qrcode("reader");
+/* ---------- Cart ---------- */
+let cart = [];
+let history = JSON.parse(localStorage.getItem('transactionHistory')) || [];
+let usedReferences = new Set(history.map(h => h.reference));
+function generateUniqueReference() {
+  let ref;
+  do { ref = 'REF-' + Math.floor(10000 + Math.random() * 90000); } while (usedReferences.has(ref));
+  usedReferences.add(ref);
+  return ref;
+}
 
-    html5QrCode.start(
-        { facingMode: "environment" },
-        {
-            fps: 10,
-            qrbox: { width: 250, height: 250 }
-        },
-        (decodedText) => {
-            // Auto-stop after scan
-            html5QrCode.stop().then(() => {
-                document.getElementById("scanner").style.display = "none";
+function renderProducts() {
+  const search = (document.getElementById("search")?.value || '').toLowerCase();
+  const container = document.getElementById("products");
+  container.innerHTML = "";
+  products.filter(p => (p.name || '').toLowerCase().includes(search) || (p.code || '').toLowerCase().includes(search))
+  .forEach(p => {
+      const stockStatus = (p.stock || 0) <= 5 ? `<span style="color: red;">Low (${p.stock || 0})</span>` : `<span style="color: green;">High (${p.stock || 0})</span>`;
+      const disabled = (p.stock || 0) <= 0 ? "disabled" : "";
+      const div = document.createElement("div");
+      div.className = "product";
+      div.innerHTML = `<div><strong>${escapeHtml(p.name)}</strong><br/>Code: ${escapeHtml(p.code)}<br/>Price: ${formatNumber(p.price)}<br/>Stock: ${stockStatus}</div><button ${disabled} onclick="addToCart('${escapeHtml(p.code)}')">Add</button>`;
+      container.appendChild(div);
+  });
+}
 
-                handleBarcode(decodedText);
-            }).catch(err => console.error("Stop failed", err));
-        },
-        (errorMsg) => {
-            // console.log(`Scan error: ${errorMsg}`);
-        }
-    ).catch(err => {
-        console.error("Start failed", err);
+
+function updateProfitSummary() {
+    // Calculate total sales
+    let totalSales = 0;
+    history.forEach(tx => {
+        tx.items.forEach(item => totalSales += item.qty * item.price);
     });
+
+    // Calculate total expenses
+    const expenses = getExpenses();
+    let totalExpenses = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+
+    // Update DOM
+    document.getElementById('summarySales').innerText = formatNumber(totalSales);
+    document.getElementById('summaryExpenses').innerText = formatNumber(totalExpenses);
+    document.getElementById('summaryProfit').innerText = formatNumber(totalSales - totalExpenses);
 }
 
-function stopScanner() {
-    if (html5QrCode) {
-        html5QrCode.stop().then(() => {
-            document.getElementById("scanner").style.display = "none";
-        }).catch(err => console.error("Stop failed", err));
+
+
+// ---------- Expense Tracker Logic ----------
+function getExpenses() { return JSON.parse(localStorage.getItem('expenses') || '[]'); }
+function saveExpenses(expenses) { localStorage.setItem('expenses', JSON.stringify(expenses)); }
+function resetExpenseForm() { 
+  document.getElementById('expenseForm').reset();
+  document.getElementById('editingIndex').value = '';
+  document.getElementById('expenseDate').valueAsDate = new Date();
+}
+
+// Open / Close Modal
+function openExpenseModal() {
+  document.getElementById('expenseModal').style.display = 'flex';
+  document.getElementById('expenseDate').valueAsDate = new Date();
+  populateExpenseTable();
+}
+function closeExpenseModal() {
+  document.getElementById('expenseModal').style.display = 'none';
+}
+
+// Populate Table
+// Populate Table
+function populateExpenseTable() {
+  const tbody = document.getElementById('expenseTableBody');
+  tbody.innerHTML = '';
+  const filter = document.getElementById('expenseFilter').value;
+  let expenses = getExpenses();
+
+  const today = new Date();
+  expenses = expenses.filter(exp => {
+    const expDate = new Date(exp.date);
+    if (filter === 'daily') return expDate.toDateString() === today.toDateString();
+    if (filter === 'weekly') {
+      const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+      const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 6);
+      return expDate >= weekStart && expDate <= weekEnd;
     }
+    if (filter === 'monthly') return expDate.getMonth() === today.getMonth() && expDate.getFullYear() === today.getFullYear();
+    if (filter === 'yearly') return expDate.getFullYear() === today.getFullYear();
+    return true;
+  });
+
+  let total = 0;
+  expenses.forEach((exp, index) => {
+    total += parseFloat(exp.amount);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${exp.date}</td>
+      <td>${exp.category}</td>
+      <td>${exp.description}</td>
+      <td>₱${parseFloat(exp.amount).toFixed(2)}</td>
+      <td>
+        <button class="edit-expense-btn" style="background-color:green;color:white;padding:4px 8px;font-size:0.85em;margin-right:4px;">Edit</button>
+        <button class="delete-expense-btn" style="background-color:red;color:white;padding:4px 8px;font-size:0.85em;">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+
+    // Attach event listeners for dynamically created buttons
+    tr.querySelector('.edit-expense-btn').addEventListener('click', () => editExpense(index));
+    tr.querySelector('.delete-expense-btn').addEventListener('click', () => deleteExpense(index));
+  });
+
+  document.getElementById('expenseTotal').innerText = total.toFixed(2);
+
+  updateProfitSummary();
 }
 
+// Edit/Delete functions
+function editExpense(index) {
+  const exp = getExpenses()[index];
+  document.getElementById('expenseDate').value = exp.date;
+  document.getElementById('expenseCategory').value = exp.category;
+  document.getElementById('expenseAmount').value = exp.amount;
+  document.getElementById('expenseDescription').value = exp.description || '';
+  editingIndex = index; // set global editing index
+}
+
+function deleteExpense(index) {
+  let expenses = getExpenses();
+  expenses.splice(index, 1);
+  saveExpenses(expenses);
+  populateExpenseTable(); // refresh table
+}
+
+// Add / Update Expense
+document.getElementById('expenseForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const expenses = getExpenses();
+  const index = document.getElementById('editingIndex').value;
+
+  const expenseData = {
+    date: document.getElementById('expenseDate').value,
+    category: document.getElementById('expenseCategory').value,
+    description: document.getElementById('expenseDescription').value,
+    amount: parseFloat(document.getElementById('expenseAmount').value).toFixed(2)
+  };
+
+  if (index) expenses[index] = expenseData;
+  else expenses.push(expenseData);
+
+  saveExpenses(expenses);
+  populateExpenseTable();
+  resetExpenseForm();
+});
+
+// Edit / Delete
+function editExpense(index){
+  const exp = getExpenses()[index];
+  document.getElementById('expenseDate').value = exp.date;
+  document.getElementById('expenseCategory').value = exp.category;
+  document.getElementById('expenseDescription').value = exp.description;
+  document.getElementById('expenseAmount').value = exp.amount;
+  document.getElementById('editingIndex').value = index;
+}
+function deleteExpense(index){
+  const expenses = getExpenses();
+  if(confirm('Delete this expense?')) {
+    expenses.splice(index,1);
+    saveExpenses(expenses);
+    populateExpenseTable();
+  }
+}
+
+// Filter change
+document.getElementById('expenseFilter').addEventListener('change', populateExpenseTable);
+
+
+function exportExpensesCSV() {
+  const expenses = getExpenses();
+  if (!expenses.length) return alert("No expense data to export.");
+
+  // Optional: apply the current filter
+  const filter = document.getElementById('expenseFilter').value;
+  const today = new Date();
+  let filteredExpenses = expenses.filter(exp => {
+    const expDate = new Date(exp.date);
+    if (filter === 'daily') return expDate.toDateString() === today.toDateString();
+    if (filter === 'weekly') {
+      const weekStart = new Date(today.setDate(today.getDate() - today.getDay()));
+      const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 6);
+      return expDate >= weekStart && expDate <= weekEnd;
+    }
+    if (filter === 'monthly') return expDate.getMonth() === today.getMonth() && expDate.getFullYear() === today.getFullYear();
+    if (filter === 'yearly') return expDate.getFullYear() === today.getFullYear();
+    return true;
+  });
+
+  // Build CSV content
+  let csvContent = "Date,Category,Description,Amount\n";
+  filteredExpenses.forEach(exp => {
+    csvContent += `${exp.date},${exp.category},${exp.description},${exp.amount}\n`;
+  });
+
+  // Create a downloadable link and click it
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", "expenses.csv");
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+
+
+
+
+function addToCart(code) {
+  const item = products.find(p => p.code === code);
+  if (!item || (item.stock || 0) <= 0) return alert("Out of stock.");
+  const existing = cart.find(c => c.code === code);
+  if (existing) {
+      if (existing.qty < (item.stock || 0)) {
+          existing.qty++;
+      } else {
+          alert("No more stocks available.");
+      }
+  } else {
+      cart.push({ ...item, qty: 1 });
+  }
+  renderCart();
+}
+
+function renderCart() {
+  const container = document.getElementById("cart");
+  container.innerHTML = "";
+  let subtotal = 0;
+  cart.forEach(item => {
+    subtotal += item.price * item.qty;
+    const div = document.createElement("div");
+    div.className = "cart-item";
+    div.innerHTML = `
+      <div>${escapeHtml(item.name)} - Php ${formatNumber(item.price)}</div>
+      <div class="qty-controls">
+        <button onclick="decreaseQty('${escapeHtml(item.code)}')">-</button>
+        <div class="qty-display">${item.qty}</div>
+        <button onclick="increaseQty('${escapeHtml(item.code)}')">+</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+  const vat = subtotal * 0;
+  const total = subtotal + vat;
+  document.getElementById("subtotal").textContent = formatNumber(subtotal);
+  document.getElementById("tax").textContent = formatNumber(vat);
+  document.getElementById("total").textContent = formatNumber(total);
+  updateChange();
+}
+function increaseQty(code) {
+  const item = cart.find(c => c.code === code);
+  if (item) {
+    if (item.qty < (products.find(p=>p.code===code).stock || 0)) {
+      item.qty++;
+      renderCart();
+    } else {
+      alert("No more stocks available.");
+    }
+  }
+}
+function decreaseQty(code) {
+  const item = cart.find(c => c.code === code);
+  if (item && item.qty > 1) {
+    item.qty--;
+  } else {
+    cart = cart.filter(c => c.code !== code);
+  }
+  renderCart();
+}
+function updateChange() {
+  const payment = parseFloat(document.getElementById("payment").value) || 0;
+  const total = parseFloat(document.getElementById("total").textContent.replace(/,/g, '')) || 0;
+  const change = payment - total;
+  document.getElementById("change").textContent = change >= 0 ? formatNumber(change) : "0.00";
+}
+document.getElementById("payment").addEventListener("input", updateChange);
+
+/* ---------- Customer storage & modal ---------- */
+function getCustomers() {
+  return JSON.parse(localStorage.getItem('customers') || '[]');
+}
+function saveCustomers(customers) {
+  localStorage.setItem('customers', JSON.stringify(customers));
+}
+function saveOrUpdateCustomerFromForm() {
+  const name = (document.getElementById('customerName').value || '').trim();
+  const mobile = (document.getElementById('customerMobile').value || '').trim();
+  const address = (document.getElementById('customerAddress').value || '').trim();
+  if (!name || !mobile) return;
+  let customers = getCustomers();
+  const idx = customers.findIndex(c => c.name === name && c.mobile === mobile);
+  if (idx >= 0) {
+    customers[idx].address = address;
+  } else {
+    customers.push({ name, mobile, address });
+  }
+  saveCustomers(customers);
+}
+function openCustomerModal() {
+  document.getElementById('customerModal').style.display = 'flex';
+  populateCustomerTable();
+}
+function closeCustomerModal() { document.getElementById('customerModal').style.display = 'none'; }
+if (document.getElementById('customerSearch')) {
+  document.getElementById('customerSearch').addEventListener('input', () => populateCustomerTable());
+}
+
+function populateCustomerTable() {
+  const tbody = document.getElementById('customerTableBody');
+  tbody.innerHTML = '';
+  let customers = getCustomers();
+  const q = (document.getElementById('customerSearch').value || '').toLowerCase().trim();
+  if (q) {
+    customers = customers.filter(c => (c.name || '').toLowerCase().includes(q) || (c.mobile || '').toLowerCase().includes(q) || (c.address || '').toLowerCase().includes(q));
+  }
+  if (!customers.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="4" style="text-align:center;color:#666;">No saved customers</td>';
+    tbody.appendChild(tr);
+    return;
+  }
+  customers.forEach((c, index) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(c.name)}</td><td>${escapeHtml(c.mobile)}</td><td>${escapeHtml(c.address || '')}</td><td><button class="select-cust-btn">Use This Customer</button></td>`;
+    tr.querySelector('.select-cust-btn').addEventListener('click', () => {
+      document.getElementById('customerName').value = c.name;
+      document.getElementById('customerMobile').value = c.mobile;
+      document.getElementById('customerAddress').value = c.address || '';
+      closeCustomerModal();
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+/* ---------- Last transaction display ---------- */
+function renderLastTransaction(tx) {
+  const el = document.getElementById('lastTransactionSummary');
+  if (!tx) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const itemsHtml = tx.items.map(i => `<div>${escapeHtml(i.name)} x ${i.qty} = ${formatNumber(i.price * i.qty)}</div>`).join('');
+  const cust = tx.customer || {};
+  el.innerHTML = `
+    <div style="font-weight:600; margin-bottom:6px;">Last Transaction — Ref: ${escapeHtml(tx.reference)} | ${escapeHtml(tx.date)} ${escapeHtml(tx.time)}</div>
+    <div style="margin-bottom:6px;"><strong>Customer:</strong> ${escapeHtml(cust.name || '')} ${cust.mobile ? ' | ' + escapeHtml(cust.mobile) : ''} ${cust.address ? ' | ' + escapeHtml(cust.address) : ''}</div>
+    <div style="margin-bottom:6px;">${itemsHtml}</div>
+    <div style="margin-top:6px;"><strong>Total:</strong> ${formatNumber(tx.total)} | <strong>Paid:</strong> ${formatNumber(tx.payment)} | <strong>Change:</strong> ${formatNumber(tx.change)}</div>
+  `;
+  el.style.display = 'block';
+}
+
+/* ---------- Checkout & History ---------- */
+function confirmPay() {
+  const payment = parseFloat(document.getElementById("payment").value) || 0;
+  const total = parseFloat(document.getElementById("total").textContent.replace(/,/g, '')) || 0;
+  if (payment < total) return alert("Insufficient payment.");
+  if (!cart.length) return alert("Cart is empty.");
+
+  // Deduct stocks
+  cart.forEach(item => {
+      const product = products.find(p => p.code === item.code);
+      if (product) {
+          product.stock = (product.stock || 0) - item.qty;
+          if (product.stock < 0) product.stock = 0;
+      }
+  });
+  saveProducts();
+
+  const now = new Date();
+  const date = now.toISOString().split('T')[0];
+  const time = now.toLocaleTimeString();
+  const reference = generateUniqueReference();
+
+  // Save or update customer record from current form (if present)
+  saveOrUpdateCustomerFromForm();
+  const customer = {
+    name: (document.getElementById('customerName').value || '').trim(),
+    mobile: (document.getElementById('customerMobile').value || '').trim(),
+    address: (document.getElementById('customerAddress').value || '').trim()
+  };
+
+  const transaction = { reference, date, time, items: JSON.parse(JSON.stringify(cart)), total, payment, change: payment - total, customer };
+
+  // Save to history and localStorage
+  history.push(transaction);
+  localStorage.setItem('transactionHistory', JSON.stringify(history));
+
+  // Render appended summary for immediate visibility (per your request)
+  renderLastTransaction(transaction);
+
+  // Re-render global displays
+  renderHistory();
+  renderProducts();
+
+  alert(`Payment confirmed.\nReference #: ${reference}`);
+
+  // Clean for the next customer but keep the lastTransactionSummary visible
+  nextCustomer();
+}
+
+function renderHistory() {
+  // Render modal table body
+  const tbody = document.getElementById("historyTableBody");
+  if (tbody) tbody.innerHTML = "";
+  history.slice().reverse().forEach(tx => {
+      const taxRate = 0;
+      const taxAmount = tx.total * taxRate / (1 + taxRate);
+      const subTotal = tx.total - taxAmount;
+      const cust = tx.customer || {};
+      const itemsHtml = tx.items.map(i => `${escapeHtml(i.name)} (${formatNumber(i.price)} x ${i.qty}) = ${formatNumber(i.price * i.qty)}`).join("<br/>");
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(tx.reference)}</td>
+        <td>${escapeHtml(tx.date)} ${escapeHtml(tx.time)}</td>
+        <td>${escapeHtml(cust.name || '')}${cust.mobile ? '<br/>' + escapeHtml(cust.mobile) : ''}${cust.address ? '<br/>' + escapeHtml(cust.address) : ''}</td>
+        <td style="white-space:normal;">${itemsHtml}</td>
+        <td>${formatNumber(subTotal)}</td>
+        <td>${formatNumber(taxAmount)}</td>
+        <td>${formatNumber(tx.total)}</td>
+        <td>${formatNumber(tx.payment)}</td>
+        <td>${formatNumber(tx.change)}</td>
+        <td><button onclick="voidTransaction('${tx.reference}')">Void</button></td>
+      `;
+      if (tbody) tbody.appendChild(tr);
+  });
+
+  // Also populate inline history list if visible
+  const list = document.getElementById("historyList");
+  if (list) {
+    list.innerHTML = "";
+    history.slice().reverse().forEach(tx => {
+      const el = document.createElement('div');
+      el.style.padding = '8px';
+      el.style.borderBottom = '1px solid #eee';
+      el.innerHTML = `<strong>${tx.reference}</strong> ${tx.date} ${tx.time} - ${tx.customer?.name || 'No customer'} - Total: ${formatNumber(tx.total)}`;
+      list.appendChild(el);
+    });
+  }
+}
+
+function voidTransaction(reference) {
+  if (!confirm(`Are you sure you want to void transaction ${reference}?`)) return;
+  history = history.filter(tx => tx.reference !== reference);
+  localStorage.setItem('transactionHistory', JSON.stringify(history));
+  renderHistory();
+  alert(`Transaction ${reference} has been voided.`);
+}
+
+function printReceipt() {
+  if (!history.length) return alert("No transaction to print.");
+  const tx = history[history.length - 1];
+  const custLine = tx.customer && (tx.customer.name || tx.customer.mobile) ? `<p style="text-align:center;">Customer: ${escapeHtml(tx.customer.name || '')} ${tx.customer.mobile ? ' | ' + escapeHtml(tx.customer.mobile) : ''}</p>` : '';
+  let receipt = `<div style="font-family: Arial; width: 280px; font-size: 12px;"><h3 style="text-align: center;">PRECIOUS GEMS COLLECTION</h3><p style="text-align: center;">Contact: 123 456 7890</p><p style="text-align: center;">Date: ${tx.date} ${tx.time}</p>${custLine}<hr/><table style="width: 100%; border-collapse: collapse;"><thead><tr><th align="left">Item</th><th align="right">Price</th><th align="right">Qty</th><th align="right">Total</th></tr></thead><tbody>${tx.items.map(i => `<tr><td>${escapeHtml(i.name)}</td><td align="right">${formatNumber(i.price)}</td><td align="right">${i.qty}</td><td align="right">${formatNumber(i.qty * i.price)}</td></tr>`).join('')}</tbody></table><hr/><table style="width: 100%; text-align: right;"><tr><td>Total:</td><td>${formatNumber(tx.total)}</td></tr><tr><td>Payment:</td><td>${formatNumber(tx.payment)}</td></tr><tr><td>Change:</td><td>${formatNumber(tx.change)}</td></tr></table><p style="text-align: center;">Thank you!</p></div>`;
+  const w = window.open("", "Print Receipt");
+  w.document.write(`<html><head><title>Receipt</title></head><body onload="window.print(); window.close();">${receipt}</body></html>`);
+  w.document.close();
+}
+
+function nextCustomer() {
+  cart = [];
+  document.getElementById("payment").value = "";
+  document.getElementById("customerName").value = "";
+  document.getElementById("customerMobile").value = "";
+  document.getElementById("customerAddress").value = "";
+  renderCart();
+    // force full reload (no cache)
+    const url = new URL(window.location.href);
+    url.searchParams.set('_reload', Date.now());
+    window.location.href = url.toString();
+}
+
+/* History modal open/close (Transaction History button opens modal) */
+function toggleHistory() {
+  const modal = document.getElementById('historyModal');
+  modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+  renderHistory();
+}
+function closeHistoryModal() { document.getElementById('historyModal').style.display = 'none'; }
+
+/* Apply date filter and render */
+function applyFilterAndRender() {
+  const from = document.getElementById("filterDateFrom").value;
+  const to = document.getElementById("filterDateTo").value;
+  if (!from && !to) { renderHistory(); return; }
+  const filtered = history.filter(tx => {
+    if (from && tx.date < from) return false;
+    if (to && tx.date > to) return false;
+    return true;
+  });
+  // Render filtered into modal table
+  const tbody = document.getElementById("historyTableBody");
+  tbody.innerHTML = "";
+  filtered.slice().reverse().forEach(tx => {
+      const taxRate = 0;
+      const taxAmount = tx.total * taxRate / (1 + taxRate);
+      const subTotal = tx.total - taxAmount;
+      const cust = tx.customer || {};
+      const itemsHtml = tx.items.map(i => `${escapeHtml(i.name)} (${formatNumber(i.price)} x ${i.qty}) = ${formatNumber(i.price * i.qty)}`).join("<br/>");
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(tx.reference)}</td>
+        <td>${escapeHtml(tx.date)} ${escapeHtml(tx.time)}</td>
+        <td>${escapeHtml(cust.name || '')}${cust.mobile ? '<br/>' + escapeHtml(cust.mobile) : ''}${cust.address ? '<br/>' + escapeHtml(cust.address) : ''}</td>
+        <td style="white-space:normal;">${itemsHtml}</td>
+        <td>${formatNumber(subTotal)}</td>
+        <td>${formatNumber(taxAmount)}</td>
+        <td>${formatNumber(tx.total)}</td>
+        <td>${formatNumber(tx.payment)}</td>
+        <td>${formatNumber(tx.change)}</td>
+        <td><button onclick="voidTransaction('${tx.reference}')">Void</button></td>
+      `;
+      tbody.appendChild(tr);
+  });
+}
+
+/* clear history */
+function clearAllHistory() {
+  if (confirm("Are you sure to clear all history?")) {
+    history = [];
+    localStorage.removeItem('transactionHistory');
+    renderHistory();
+  }
+}
+
+/* CSV export by date range (modal's date fields used) */
+function extractCSVByDateRange() {
+  const from = document.getElementById("filterDateFrom").value;
+  const to = document.getElementById("filterDateTo").value;
+  if (!from || !to) return alert("Select from and to dates.");
+
+  const filtered = history.filter(tx => tx.date >= from && tx.date <= to);
+  if (filtered.length === 0) return alert("No transactions found in this date range.");
+
+  let csvContent = "Reference,Date,Time,Customer Name,Customer Mobile,Customer Address,Item,Price,Qty,Item Total,Subtotal,Tax,Total,Payment,Change\n";
+  const taxRate = 0;
+
+  filtered.forEach(tx => {
+      const taxAmount = tx.total * taxRate / (1 + taxRate);
+      const subTotal = tx.total - taxAmount;
+
+      tx.items.forEach((item, index) => {
+          const itemTotal = item.price * item.qty;
+          csvContent += [
+              index === 0 ? tx.reference : "",
+              index === 0 ? tx.date : "",
+              index === 0 ? tx.time : "",
+              index === 0 ? (tx.customer?.name || "") : "",
+              index === 0 ? (tx.customer?.mobile || "") : "",
+              index === 0 ? (tx.customer?.address || "") : "",
+              item.name,
+              item.price,
+              item.qty,
+              itemTotal,
+              index === 0 ? subTotal.toFixed(2) : "",
+              index === 0 ? taxAmount.toFixed(2) : "",
+              index === 0 ? tx.total.toFixed(2) : "",
+              index === 0 ? tx.payment.toFixed(2) : "",
+              index === 0 ? tx.change.toFixed(2) : ""
+          ].map(val => `"${String(val).replace(/"/g,'""')}"`).join(",") + "\n";
+      });
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `Transaction_History_${from}_to_${to}.csv`;
+  link.click();
+}
+
+function showSalesSummary() {
+  if (!history.length) return alert("No transactions recorded.");
+
+  const summary = {};
+  let totalSales = 0;
+
+  history.forEach(tx => {
+      tx.items.forEach(item => {
+          if (!summary[item.name]) summary[item.name] = { qty: 0, total: 0 };
+          summary[item.name].qty += item.qty;
+          summary[item.name].total += item.qty * item.price;
+          totalSales += item.qty * item.price;
+      });
+  });
+
+  // Prepare data for chart
+  const labels = Object.keys(summary);
+  const data = labels.map(name => summary[name].total);
+
+  // Show modal
+  const modal = document.getElementById("salesSummaryModal");
+  const summaryDiv = document.getElementById("salesSummaryContent");
+
+  // Populate text summary
+  let message = "";
+  for (const name of labels) {
+      message += `${name} - Quantity Sold: ${summary[name].qty} | Sales: ${formatNumber(summary[name].total)}<br>`;
+  }
+  message += `<br>------------------------<br>`;
+  message += `Total Sales Amount: ${formatNumber(totalSales)}`;
+  summaryDiv.innerHTML = message;
+
+  // Show modal
+  modal.style.display = "block";
+
+  // Create chart
+  const ctx = document.getElementById("salesChart").getContext("2d");
+
+  // Destroy existing chart if exists (prevents duplicates)
+  if (window.salesChartInstance) window.salesChartInstance.destroy();
+
+  window.salesChartInstance = new Chart(ctx, {
+      type: 'bar', // or 'pie', 'line', etc.
+      data: {
+          labels: labels,
+          datasets: [{
+              label: 'Sales Amount',
+              data: data,
+              backgroundColor: 'rgba(75, 192, 192, 0.6)',
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 1
+          }]
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              legend: { display: false },
+              title: { display: true, text: 'Sales Summary Chart' }
+          },
+          scales: {
+              y: { beginAtZero: true }
+          }
+      }
+  });
+}
+
+
+function closeSalesSummary() {
+    const modal = document.getElementById("salesSummaryModal");
+    modal.style.display = "none";
+}
+
+
+// Optional: click outside the modal to close
+window.onclick = function(event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}
+
+
+/* Stocks addition */
+function addStockPrompt() {
+  const code = prompt("Enter the Product Code to add stocks:");
+  if (!code) return;
+  const product = products.find(p => p.code === code);
+  if (!product) return alert("Product not found.");
+  const additionalStock = parseInt(prompt("Enter number of stocks to add:"), 10);
+  if (isNaN(additionalStock) || additionalStock <= 0) return alert("Invalid stock count.");
+  product.stock = (product.stock || 0) + additionalStock;
+  saveProducts();
+  renderProducts();
+  alert(`Stock for ${product.name} is now ${product.stock}`);
+}
+
+/* ---------- Barcode scanner (html5-qrcode) ---------- */
+let html5QrCode;
+function startScanner() {
+  document.getElementById('barcodeModal').style.display = 'flex';
+  try {
+    html5QrCode = html5QrCode || new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      decodedText => {
+        html5QrCode.stop().then(() => {
+          document.getElementById('barcodeModal').style.display = 'none';
+          handleBarcode(decodedText);
+        }).catch(err => console.error("Stop failed", err));
+      },
+      errorMsg => {}
+    ).catch(err => console.error("Start failed", err));
+  } catch (e) { console.error(e); }
+}
 function handleBarcode(code) {
   const cleanCode = code.trim().toString();
   const found = products.find(p => p.code === cleanCode);
@@ -443,411 +1378,26 @@ function handleBarcode(code) {
     addToCart(found.code);
   } else {
     alert("Product not found for barcode: " + cleanCode);
-const found = products.find(p => p.code === code.trim());
-
+  }
+}
+function closeBarcodeModal() {
+  if (html5QrCode) {
+    html5QrCode.stop().catch(()=>{}).finally(()=>{ document.getElementById('barcodeModal').style.display = 'none'; });
+  } else {
+    document.getElementById('barcodeModal').style.display = 'none';
   }
 }
 
+/* helper: close customer modal when clicking background */
+document.getElementById('customerModal').addEventListener('click', function(e){
+  if (e.target === this) closeCustomerModal();
+});
 
-function onScanSuccess(decodedText, decodedResult) {
-    const scannedCode = decodedText.trim();
-    console.log("Scanned code:", scannedCode);
+/* Initial render */
+renderProducts();
+renderCart();
+renderHistory();
 
-    const product = products.find(p => p.code === scannedCode);
-
-    if (product) {
-        addToCart(product);
-    } else {
-        alert("❌ Product not found for barcode: " + scannedCode);
-    }
-}
-
-
-
-
-  function showSalesSummary() {
-    if (!history.length) return alert("No transactions recorded.");
-    const summary = {};
-    let totalSales = 0;
-
-    history.forEach(tx => {
-        tx.items.forEach(item => {
-            if (!summary[item.name]) {
-                summary[item.name] = { qty: 0, total: 0 };
-            }
-            summary[item.name].qty += item.qty;
-            summary[item.name].total += item.qty * item.price;
-            totalSales += item.qty * item.price;
-        });
-    });
-
-    let message = "";
-    for (const [name, data] of Object.entries(summary)) {
-        message += `${name} - Quantity Sold: ${data.qty} | Sales: ${formatNumber(data.total)}\n`;
-    }
-    message += `\n------------------------\n`;
-    message += `<span style="font-size: 1.4rem; font-weight: bold;">Total Sales Amount: ${formatNumber(totalSales)}</span>`;
-
-    document.getElementById('salesSummaryContent').innerHTML = message;
-    document.getElementById('salesSummaryModal').style.display = 'flex';
-}
-
-
-
-
-
-const defaultProducts = [
-  { code: "4800000000013", name: "Biogesic Tablet 500mg", price: 6.50, stock: 100 },
-  { code: "4800000000020", name: "Biogesic Caplet 500mg", price: 5.53, stock: 100 },
-  { code: "4800000000037", name: "Tempra Syrup 120ml", price: 241.48, stock: 50 },
-  { code: "4800000000044", name: "Calpol Syrup 120ml", price: 240.50, stock: 50 },
-  { code: "4800000000051", name: "Alaxan FR Capsule", price: 11.05, stock: 100 },
-  { code: "4800000000068", name: "Dolfenal Tablet", price: 23.40, stock: 100 },
-  { code: "4800000000075", name: "Neozep Forte Tablet", price: 7.80, stock: 100 },
-  { code: "4800000000082", name: "Decolgen Forte Tablet", price: 7.80, stock: 100 },
-  { code: "4800000000099", name: "Solmux Capsule", price: 17.39, stock: 100 },
-  { code: "4800000000105", name: "Solmux Syrup 60ml", price: 173.82, stock: 50 },
-  { code: "4800000000112", name: "Robitussin Syrup 120ml", price: 223.21, stock: 50 },
-  { code: "4800000000129", name: "Tuseran Forte Capsule", price: 16.65, stock: 100 },
-  { code: "4800000000136", name: "Kremil-S Tablet", price: 2.60, stock: 100 },
-  { code: "4800000000143", name: "Diatabs Capsule", price: 3.90, stock: 100 },
-  { code: "4800000000150", name: "Buscopan Tablet", price: 9.10, stock: 100 },
-  { code: "4800000000167", name: "Motilium Tablet", price: 10.40, stock: 100 },
-  { code: "4800000000174", name: "Allerkid Syrup 60ml", price: 130.00, stock: 50 },
-  { code: "4800000000181", name: "Claritin Tablet", price: 14.30, stock: 100 },
-  { code: "4800000000198", name: "Virlix Tablet", price: 47.67, stock: 100 },
-  { code: "4800000000204", name: "Benadryl Syrup 60ml", price: 175.50, stock: 50 },
-  { code: "4800000000211", name: "Enervon Tablet", price: 5.20, stock: 200 },
-  { code: "4800000000228", name: "Revicon Tablet", price: 6.50, stock: 200 },
-  { code: "4800000000235", name: "Ceelin Syrup 60ml", price: 130.00, stock: 50 },
-  { code: "4800000000242", name: "Cherifer Capsule", price: 7.80, stock: 200 },
-  { code: "4800000000259", name: "Cherifer Syrup 200ml", price: 247.00, stock: 50 },
-  { code: "4800000000266", name: "Nutrilin Syrup 200ml", price: 195.00, stock: 50 },
-  { code: "4800000000273", name: "Katinko Ointment", price: 71.50, stock: 50 },
-  { code: "4800000000280", name: "Efficascent Oil 60ml", price: 104.00, stock: 50 }
-];
-
-
-
-  let products = JSON.parse(localStorage.getItem('products')) || defaultProducts;
-  products = products.map(p => ({ ...p, code: p.code.trim().toString() }));
-
-
-  function saveProducts() {
-    localStorage.setItem('products', JSON.stringify(products));
-  }
-  function openModal() { document.getElementById('productModal').style.display = 'flex'; }
-  function closeModal() { document.getElementById('productModal').style.display = 'none'; }
-  function addNewProduct() {
-    const code = document.getElementById('newCode').value.trim();
-    const name = document.getElementById('newName').value.trim();
-    const price = parseFloat(document.getElementById('newPrice').value.trim());
-    if (!code || !name || isNaN(price)) { alert('Complete all fields correctly.'); return; }
-    products.push({ code, name, price });
-    saveProducts();
-    renderProducts();
-    closeModal();
-    document.getElementById('newCode').value = '';
-    document.getElementById('newName').value = '';
-    document.getElementById('newPrice').value = '';
-  }
-  function deleteProductPrompt() {
-    const code = prompt("Enter the Product Code to delete:");
-    if (!code) return;
-    products = products.filter(p => p.code !== code);
-    saveProducts();
-    renderProducts();
-  }
-  function editProductPrompt() {
-    const code = prompt("Enter the Product Code to edit:");
-    if (!code) return;
-    const product = products.find(p => p.code === code);
-    if (!product) return alert("Product not found.");
-    const newName = prompt("Enter new Product Name:", product.name);
-    const newPrice = parseFloat(prompt("Enter new Product Price:", product.price));
-    if (!newName || isNaN(newPrice)) return alert("Invalid name or price.");
-    product.name = newName;
-    product.price = newPrice;
-    saveProducts();
-    renderProducts();
-    alert("Product updated successfully.");
-  }
-  function updateDateTime() {
-    const now = new Date();
-    document.getElementById('datetime').textContent = now.toLocaleString();
-  }
-  setInterval(updateDateTime, 1000);
-  updateDateTime();
-  function formatNumber(num) {
-    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-  let cart = [];
-  let history = JSON.parse(localStorage.getItem('transactionHistory')) || [];
-  let usedReferences = new Set(history.map(h => h.reference));
-  function generateUniqueReference() {
-    let ref;
-    do { ref = 'REF-' + Math.floor(10000 + Math.random() * 90000); } while (usedReferences.has(ref));
-    usedReferences.add(ref);
-    return ref;
-  }
-
-function renderProducts() {
-    const search = document.getElementById("search").value.toLowerCase();
-    const container = document.getElementById("products");
-    container.innerHTML = "";
-    products.filter(p => p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search))
-    .forEach(p => {
-        const stockStatus = p.stock <= 5 ? `<span style="color: red;">Low (${p.stock})</span>` : `<span style="color: green;">High (${p.stock})</span>`;
-        const disabled = p.stock <= 0 ? "disabled" : "";
-        const div = document.createElement("div");
-        div.className = "product";
-        div.innerHTML = `<div><strong>${p.name}</strong><br/>Code: ${p.code}<br/>Price: ${formatNumber(p.price)}<br/>Stock: ${stockStatus}</div><button ${disabled} onclick="addToCart('${p.code}')">Add</button>`;
-        container.appendChild(div);
-    });
-}
-
-
-function addToCart(code) {
-    const item = products.find(p => p.code === code);
-    if (!item || item.stock <= 0) return alert("Out of stock.");
-    const existing = cart.find(c => c.code === code);
-    if (existing) {
-        if (existing.qty < item.stock) {
-            existing.qty++;
-        } else {
-            alert("No more stocks available.");
-        }
-    } else {
-        cart.push({ ...item, qty: 1 });
-    }
-    renderCart();
-} 
-
-  function renderCart() {
-    const container = document.getElementById("cart");
-    container.innerHTML = "";
-    let subtotal = 0;
-    cart.forEach(item => {
-      subtotal += item.price * item.qty;
-      const div = document.createElement("div");
-      div.className = "cart-item";
-      div.innerHTML = `
-        <div>${item.name} - Php ${formatNumber(item.price)}</div>
-        <div class="qty-controls">
-          <button onclick="decreaseQty('${item.code}')">-</button>
-          <div class="qty-display">${item.qty}</div>
-          <button onclick="increaseQty('${item.code}')">+</button>
-        </div>
-      `;
-      container.appendChild(div);
-    });
-    const vat = subtotal * 0.12;
-    const total = subtotal + vat;
-    document.getElementById("subtotal").textContent = formatNumber(subtotal);
-    document.getElementById("tax").textContent = formatNumber(vat);
-    document.getElementById("total").textContent = formatNumber(total);
-    updateChange();
-  }
-  function increaseQty(code) {
-    const item = cart.find(c => c.code === code);
-    if (item) {
-      item.qty++;
-      renderCart();
-    }
-  }
-  function decreaseQty(code) {
-    const item = cart.find(c => c.code === code);
-    if (item && item.qty > 1) {
-      item.qty--;
-    } else {
-      cart = cart.filter(c => c.code !== code);
-    }
-    renderCart();
-  }
-  function updateChange() {
-    const payment = parseFloat(document.getElementById("payment").value) || 0;
-    const total = parseFloat(document.getElementById("total").textContent.replace(/,/g, ''));
-    const change = payment - total;
-    document.getElementById("change").textContent = change >= 0 ? formatNumber(change) : "0.00";
-  }
-  document.getElementById("payment").addEventListener("input", updateChange);
- 
-function confirmPay() {
-    const payment = parseFloat(document.getElementById("payment").value) || 0;
-    const total = parseFloat(document.getElementById("total").textContent.replace(/,/g, ''));
-    if (payment < total) return alert("Insufficient payment.");
-
-    // Deduct stocks
-    cart.forEach(item => {
-        const product = products.find(p => p.code === item.code);
-        if (product) {
-            product.stock = (product.stock || 0) - item.qty;
-        }
-    });
-    saveProducts();
-
-    const now = new Date();
-    const date = now.toISOString().split('T')[0];
-    const time = now.toLocaleTimeString();
-    const reference = generateUniqueReference();
-    const transaction = { reference, date, time, items: [...cart], total, payment, change: payment - total };
-    history.push(transaction);
-    localStorage.setItem('transactionHistory', JSON.stringify(history));
-    renderHistory();
-    renderProducts();
-    alert(`Payment confirmed.\nReference #: ${reference}`);
-    nextCustomer();
-}
-
-function renderHistory() {
-    const container = document.getElementById("history");
-    container.innerHTML = "";
-    history.slice().reverse().forEach(tx => {
-        const div = document.createElement("div");
-        div.className = "transaction";
-
-        const taxRate = 0.12;
-        const taxAmount = tx.total * taxRate / (1 + taxRate); // Extract tax from total
-        const subTotal = tx.total - taxAmount;
-
-        div.innerHTML = `
-            <div>
-                <strong>${tx.reference}</strong><br/>
-                ${tx.date} ${tx.time}
-                <br/>
-                <div class="transaction-details">
-                    ${tx.items.map(i => `${i.name} (${formatNumber(i.price)} x ${i.qty}) = ${formatNumber(i.price * i.qty)}`).join("<br/>")}
-                    <br/>Subtotal: ${formatNumber(subTotal)}
-                    <br/>Tax (12%): ${formatNumber(taxAmount)}
-                    <br/>Total: ${formatNumber(tx.total)}
-                    <br/>Paid: ${formatNumber(tx.payment)} | Change: ${formatNumber(tx.change)}
-                </div>
-                <button onclick="voidTransaction('${tx.reference}')">Void This Transaction</button>
-            </div>
-        `;
-        container.appendChild(div);
-    });
-}
-
-
-function voidTransaction(reference) {
-    if (!confirm(`Are you sure you want to void transaction ${reference}?`)) return;
-    history = history.filter(tx => tx.reference !== reference);
-    localStorage.setItem('transactionHistory', JSON.stringify(history));
-    renderHistory();
-    alert(`Transaction ${reference} has been voided.`);
-}
-
-  function printReceipt() {
-    if (!history.length) return alert("No transaction to print.");
-    const tx = history[history.length - 1];
-    let receipt = `<div style="font-family: Arial; width: 280px; font-size: 12px;"><h3 style="text-align: center;">PRECIOUS GEMS COLLECTION</h3><p style="text-align: center;">Contact: 123 456 7890</p><p style="text-align: center;">Date: ${tx.date} ${tx.time}</p><hr/><table style="width: 100%; border-collapse: collapse;"><thead><tr><th align="left">Item</th><th align="right">Price</th><th align="right">Qty</th><th align="right">Total</th></tr></thead><tbody>${tx.items.map(i => `<tr><td>${i.name}</td><td align="right">${formatNumber(i.price)}</td><td align="right">${i.qty}</td><td align="right">${formatNumber(i.qty * i.price)}</td></tr>`).join('')}</tbody></table><hr/><table style="width: 100%; text-align: right;"><tr><td>Total:</td><td>${formatNumber(tx.total)}</td></tr><tr><td>Payment:</td><td>${formatNumber(tx.payment)}</td></tr><tr><td>Change:</td><td>${formatNumber(tx.change)}</td></tr></table><p style="text-align: center;">Thank you!</p></div>`;
-    const w = window.open("", "Print Receipt");
-    w.document.write(`<html><head><title>Receipt</title></head><body onload="window.print(); window.close();">${receipt}</body></html>`);
-    w.document.close();
-  }
-
-  function nextCustomer() {
- // Force full reload (bypasses cache)
-      window.location.href = window.location.href.split('?')[0] + '?_=' + new Date().getTime();
-    
-  }
-
-
-
-function toggleHistory() {
-    const modal = document.getElementById('historyModal');
-    modal.style.display = 'flex';
-    renderHistory();
-}
-function closeHistoryModal() {
-    document.getElementById('historyModal').style.display = 'none';
-}
-
-
-  function clearAllHistory() {
-    if (confirm("Are you sure to clear all history?")) {
-      history = [];
-      localStorage.removeItem('transactionHistory');
-      renderHistory();
-    }
-  }
-
-
-function extractCSVByDateRange() {
-    const from = document.getElementById("filterDateFrom").value;
-    const to = document.getElementById("filterDateTo").value;
-    if (!from || !to) return alert("Select from and to dates.");
-
-    const filtered = history.filter(tx => tx.date >= from && tx.date <= to);
-    if (filtered.length === 0) return alert("No transactions found in this date range.");
-
-    let csvContent = "Reference,Date,Time,Item,Price,Qty,Item Total,Subtotal,Tax,Total,Payment,Change\n";
-    const taxRate = 0.12;
-
-    filtered.forEach(tx => {
-        const taxAmount = tx.total * taxRate / (1 + taxRate);
-        const subTotal = tx.total - taxAmount;
-
-        tx.items.forEach((item, index) => {
-            const itemTotal = item.price * item.qty;
-            csvContent += [
-                index === 0 ? tx.reference : "",
-                index === 0 ? tx.date : "",
-                index === 0 ? tx.time : "",
-                item.name,
-                item.price,
-                item.qty,
-                itemTotal,
-                index === 0 ? subTotal.toFixed(2) : "",
-                index === 0 ? taxAmount.toFixed(2) : "",
-                index === 0 ? tx.total.toFixed(2) : "",
-                index === 0 ? tx.payment.toFixed(2) : "",
-                index === 0 ? tx.change.toFixed(2) : ""
-            ].join(",") + "\n";
-        });
-    });
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `Transaction_History_${from}_to_${to}.csv`;
-    link.click();
-}
-
-
-
-function closeSalesSummaryModal() {
-    document.getElementById('salesSummaryModal').style.display = 'none';
-}
-
-
-
-
-
-
-
-
-
-function addStockPrompt() {
-    const code = prompt("Enter the Product Code to add stocks:");
-    if (!code) return;
-    const product = products.find(p => p.code === code);
-    if (!product) return alert("Product not found.");
-    const additionalStock = parseInt(prompt("Enter number of stocks to add:"), 10);
-    if (isNaN(additionalStock) || additionalStock <= 0) return alert("Invalid stock count.");
-    product.stock = (product.stock || 0) + additionalStock;
-    saveProducts();
-    renderProducts();
-    alert(`Stock for ${product.name} is now ${product.stock}`);
-}
-
-
-
-  renderProducts();
-  renderCart();
-  updateDateTime();
-  setInterval(updateDateTime, 1000);
 </script>
 </body>
 </html>
