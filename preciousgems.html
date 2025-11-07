@@ -1140,7 +1140,7 @@ function printReceipt() {
   if (!history.length) return alert("No transaction to print.");
   const tx = history[history.length - 1];
   const custLine = tx.customer && (tx.customer.name || tx.customer.mobile) ? `<p style="text-align:center;">Customer: ${escapeHtml(tx.customer.name || '')} ${tx.customer.mobile ? ' | ' + escapeHtml(tx.customer.mobile) : ''}</p>` : '';
-  let receipt = `<div style="font-family: Arial; width: 280px; font-size: 12px;"><h3 style="text-align: center;">PRECIOUS GEMS COLLECTION</h3><p style="text-align: center;">Contact: 123 456 7890</p><p style="text-align: center;">Date: ${tx.date} ${tx.time}</p>${custLine}<hr/><table style="width: 100%; border-collapse: collapse;"><thead><tr><th align="left">Item</th><th align="right">Price</th><th align="right">Qty</th><th align="right">Total</th></tr></thead><tbody>${tx.items.map(i => `<tr><td>${escapeHtml(i.name)}</td><td align="right">${formatNumber(i.price)}</td><td align="right">${i.qty}</td><td align="right">${formatNumber(i.qty * i.price)}</td></tr>`).join('')}</tbody></table><hr/><table style="width: 100%; text-align: right;"><tr><td>Total:</td><td>${formatNumber(tx.total)}</td></tr><tr><td>Payment:</td><td>${formatNumber(tx.payment)}</td></tr><tr><td>Change:</td><td>${formatNumber(tx.change)}</td></tr></table><p style="text-align: center;">Thank you!</p></div>`;
+  let receipt = `<div style="font-family: Arial; width: 280px; font-size: 12px;"><h3 style="text-align: center;">PRECIOUS GEMS COLLECTION</h3><p style="text-align: center;">Contact: 09 941 276 037</p><p style="text-align: center;">Date: ${tx.date} ${tx.time}</p>${custLine}<hr/><table style="width: 100%; border-collapse: collapse;"><thead><tr><th align="left">Item</th><th align="right">Price</th><th align="right">Qty</th><th align="right">Total</th></tr></thead><tbody>${tx.items.map(i => `<tr><td>${escapeHtml(i.name)}</td><td align="right">${formatNumber(i.price)}</td><td align="right">${i.qty}</td><td align="right">${formatNumber(i.qty * i.price)}</td></tr>`).join('')}</tbody></table><hr/><table style="width: 100%; text-align: right;"><tr><td>Total:</td><td>${formatNumber(tx.total)}</td></tr><tr><td>Payment:</td><td>${formatNumber(tx.payment)}</td></tr><tr><td>Change:</td><td>${formatNumber(tx.change)}</td></tr></table><p style="text-align: center;">Thank you!</p></div>`;
   const w = window.open("", "Print Receipt");
   w.document.write(`<html><head><title>Receipt</title></head><body onload="window.print(); window.close();">${receipt}</body></html>`);
   w.document.close();
@@ -1401,3 +1401,4 @@ renderHistory();
 </script>
 </body>
 </html>
+
